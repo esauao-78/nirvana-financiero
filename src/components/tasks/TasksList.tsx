@@ -1,6 +1,7 @@
 import { useState, DragEvent } from 'react'
 import { useTasks } from '../../hooks/useTasks'
 import { useGoals } from '../../hooks/useGoals'
+import { DateInput } from '../ui/DateInput'
 import { Plus, ListTodo, Trash2, Edit2, Check, Calendar, Clock, Bell, Target, List, LayoutGrid, Sun, Moon, Sunset } from 'lucide-react'
 
 type ViewMode = 'list' | 'kanban'
@@ -301,11 +302,9 @@ export function TasksList() {
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
                                     <label className="block text-sm font-medium mb-1 dark:text-gray-300">Fecha Límite</label>
-                                    <input
-                                        type="date"
+                                    <DateInput
                                         value={fechaLimite}
-                                        onChange={(e) => setFechaLimite(e.target.value)}
-                                        className="w-full px-4 py-2 border-2 border-gray-200 dark:border-gray-600 rounded-xl bg-gray-50 dark:bg-gray-700 dark:text-white"
+                                        onChange={setFechaLimite}
                                     />
                                 </div>
                                 <div>
