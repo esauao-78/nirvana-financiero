@@ -13,6 +13,40 @@ export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey, {
     auth: {
         autoRefreshToken: true,
         persistSession: true,
-        detectSessionInUrl: true
+        detectSessionInUrl: true,
+        storageKey: 'juega-tu-juego-auth',
+        storage: {
+            getItem: (key) => {
+                try {
+                    const item = localStorage.getItem(key)
+                    console.log(`[Storage] getItem(${key}):`, item ? 'found' : 'not found')
+                    return item
+                } catch (error) {
+                    console.error('[Storage] getItem error:', error)
+                    return null
+                }
+            },
+            setItem: (key, value) => {
+                try {
+                    console.log(`[Storage] setItem(${key})`)
+                    localStorage.setItem(key, value)
+                } catch (error) {
+                    console.error('[Storage] setItem error:', error)
+                }
+            },
+            removeItem: (key) => {
+                try {
+                    console.log(`[Storage] removeItem(${key})`)
+                    localStorage.removeItem(key)
+                } catch (error) {
+                    console.error('[Storage] removeItem error:', error)
+                }
+            }
+        }
     }
 })
+
+// Log storage status on init
+console.log('[Supabase] Initialized with URL:', supabaseUrl)
+console.log('[Supabase] localStorage available:', typeof localStorage !== 'undefined')
+

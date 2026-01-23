@@ -43,27 +43,38 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     // Fetch profile with timeout
     const fetchProfile = useCallback(async (userId: string): Promise<Profile | null> => {
-        const controller = new AbortController()
-        const timeoutId = setTimeout(() => controller.abort(), 10000) // 10 second timeout
+        console.log('[Auth] Fetching profile for:', userId)
 
         try {
-            const { data, error } = await supabase
+            // Create a timeout promise
+            const timeoutPromise = new Promise<null>((_, reject) =>
+                setTimeout(() => reject(new Error('Profile fetch timeout')), 10000)
+            )
+
+            const fetchPromise = supabase
                 .from('profiles')
                 .select('*')
                 .eq('id', userId)
                 .single()
-                .abortSignal(controller.signal)
 
-            clearTimeout(timeoutId)
+            const result = await Promise.race([fetchPromise, timeoutPromise])
 
-            if (error) {
-                console.error('Error fetching profile:', error)
+            if (result === null) {
+                console.error('[Auth] Profile fetch timed out')
                 return null
             }
+
+            const { data, error } = result as { data: Profile | null, error: unknown }
+
+            if (error) {
+                console.error('[Auth] Error fetching profile:', error)
+                return null
+            }
+
+            console.log('[Auth] Profile fetched successfully:', data?.nombre)
             return data
         } catch (err) {
-            clearTimeout(timeoutId)
-            console.error('Exception fetching profile:', err)
+            console.error('[Auth] Exception fetching profile:', err)
             return null
         }
     }, [])
@@ -89,11 +100,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // Initialize session on mount
     useEffect(() => {
         let isMounted = true
+        console.log('[Auth] Starting initialization...')
 
         // Safety timeout - if we're still loading after 15 seconds, something is wrong
         const safetyTimeout = setTimeout(() => {
             if (isMounted && appState === 'loading') {
-                console.warn('Safety timeout triggered - clearing auth data')
+                console.warn('[Auth] Safety timeout triggered - clearing auth data')
                 clearAuthData()
                 setAppState('unauthenticated')
             }
@@ -101,19 +113,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
         const initializeAuth = async () => {
             try {
+                console.log('[Auth] Calling getSession...')
                 const { data: { session }, error } = await supabase.auth.getSession()
+                console.log('[Auth] getSession result:', { hasSession: !!session, error: error?.message })
 
-                if (!isMounted) return
+                if (!isMounted) {
+                    console.log('[Auth] Component unmounted, aborting')
+                    return
+                }
 
                 if (error || !session) {
+                    console.log('[Auth] No valid session, checking for stale data...')
                     // Check if there's stale data in localStorage
                     const hasStoredData = Object.keys(localStorage).some(key =>
-                        key.startsWith('sb-') || key.includes('supabase')
+                        key.startsWith('sb-') || key.includes('supabase') || key.includes('juega-tu-juego')
                     )
                     if (hasStoredData && !session) {
-                        console.warn('Clearing stale auth data')
+                        console.warn('[Auth] Clearing stale auth data')
                         clearAuthData()
                     }
+                    console.log('[Auth] Setting state to unauthenticated')
                     setAppState('unauthenticated')
                     return
                 }
