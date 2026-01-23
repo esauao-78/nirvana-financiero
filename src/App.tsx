@@ -19,13 +19,13 @@ import { PomodoroTimer } from './components/pomodoro/PomodoroTimer'
 import { IdentityEditor } from './components/identity/IdentityEditor'
 
 function AppContent() {
-    const { user, profile, loading, profileLoading, profileError, retryLoadProfile } = useAuth()
+    const { profile, appState, errorMessage, retryLoadProfile, signOut } = useAuth()
     const [currentView, setCurrentView] = useState<ViewType>('dashboard')
     const [sidebarOpen, setSidebarOpen] = useState(false)
     const [coachOpen, setCoachOpen] = useState(false)
 
     // Loading state
-    if (loading) {
+    if (appState === 'loading') {
         return (
             <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
                 <div className="text-center">
@@ -39,12 +39,12 @@ function AppContent() {
     }
 
     // Not logged in
-    if (!user) {
+    if (appState === 'unauthenticated') {
         return <LoginForm />
     }
 
-    // Profile is still loading
-    if (profileLoading) {
+    // Profile is loading
+    if (appState === 'profile_loading') {
         return (
             <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
                 <div className="text-center">
@@ -57,8 +57,8 @@ function AppContent() {
         )
     }
 
-    // Profile failed to load - show error with retry option
-    if (profileError || (!profile && user)) {
+    // Profile failed to load
+    if (appState === 'profile_error') {
         return (
             <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 p-4">
                 <div className="text-center max-w-md">
@@ -69,7 +69,7 @@ function AppContent() {
                         Error al cargar el perfil
                     </h2>
                     <p className="text-gray-500 dark:text-gray-400 mb-6">
-                        {profileError || 'No se pudo cargar tu información. Por favor, intenta de nuevo.'}
+                        {errorMessage || 'No se pudo cargar tu información. Por favor, intenta de nuevo.'}
                     </p>
                     <div className="flex flex-col gap-3">
                         <button
@@ -84,25 +84,30 @@ function AppContent() {
                         >
                             Recargar página
                         </button>
+                        <button
+                            onClick={signOut}
+                            className="w-full py-3 rounded-xl font-semibold text-red-600 dark:text-red-400 border-2 border-red-200 dark:border-red-800 hover:bg-red-50 dark:hover:bg-red-900/20 transition-all"
+                        >
+                            Cerrar sesión
+                        </button>
                     </div>
                 </div>
             </div>
         )
     }
 
-    // Onboarding not completed - only show if we have a profile AND onboarding is explicitly false
+    // Onboarding not completed
     if (profile && profile.onboarding_completed === false) {
         return (
             <OnboardingFlow
                 onComplete={() => {
-                    // Profile will be updated, causing re-render
                     window.location.reload()
                 }}
             />
         )
     }
 
-    // Main app
+    // Main app (authenticated state)
     return (
         <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
             <Header

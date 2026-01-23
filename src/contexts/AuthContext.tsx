@@ -1,23 +1,22 @@
-import { createContext, useContext, useEffect, useState, ReactNode } from 'react'
+import { createContext, useContext, useEffect, useState, ReactNode, useCallback } from 'react'
 import { User, Session, AuthError } from '@supabase/supabase-js'
 import { supabase } from '../lib/supabase'
 import type { Database } from '../types/database'
 
 type Profile = Database['public']['Tables']['profiles']['Row']
 
+type AppState = 'loading' | 'unauthenticated' | 'profile_loading' | 'profile_error' | 'authenticated'
+
 interface AuthContextType {
     user: User | null
     profile: Profile | null
     session: Session | null
-    loading: boolean
-    profileLoading: boolean
-    profileError: string | null
+    appState: AppState
+    errorMessage: string | null
     signUp: (email: string, password: string, name?: string) => Promise<{ error: AuthError | null }>
     signIn: (email: string, password: string) => Promise<{ error: AuthError | null }>
-    signInWithGoogle: () => Promise<{ error: AuthError | null }>
     signOut: () => Promise<void>
     updateProfile: (updates: Partial<Profile>) => Promise<{ error: Error | null }>
-    refreshProfile: () => Promise<void>
     retryLoadProfile: () => Promise<void>
 }
 
@@ -27,174 +26,169 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const [user, setUser] = useState<User | null>(null)
     const [profile, setProfile] = useState<Profile | null>(null)
     const [session, setSession] = useState<Session | null>(null)
-    const [loading, setLoading] = useState(true)
-    const [profileLoading, setProfileLoading] = useState(false)
-    const [profileError, setProfileError] = useState<string | null>(null)
+    const [appState, setAppState] = useState<AppState>('loading')
+    const [errorMessage, setErrorMessage] = useState<string | null>(null)
 
-    const fetchProfile = async (userId: string, retries = 3): Promise<Profile | null> => {
-        setProfileLoading(true)
-        setProfileError(null)
-
-        for (let attempt = 1; attempt <= retries; attempt++) {
-            try {
-                const { data, error } = await supabase
-                    .from('profiles')
-                    .select('*')
-                    .eq('id', userId)
-                    .single()
-
-                if (error) {
-                    console.error(`Error fetching profile (attempt ${attempt}/${retries}):`, error)
-                    if (attempt === retries) {
-                        setProfileError(`No se pudo cargar el perfil: ${error.message}`)
-                        setProfileLoading(false)
-                        return null
-                    }
-                    // Wait before retry
-                    await new Promise(resolve => setTimeout(resolve, 1000 * attempt))
-                    continue
-                }
-
-                setProfileLoading(false)
-                return data
-            } catch (err) {
-                console.error(`Exception fetching profile (attempt ${attempt}/${retries}):`, err)
-                if (attempt === retries) {
-                    setProfileError('Error de conexión al cargar perfil')
-                    setProfileLoading(false)
-                    return null
-                }
-                await new Promise(resolve => setTimeout(resolve, 1000 * attempt))
+    // Clear all auth data from localStorage
+    const clearAuthData = useCallback(() => {
+        const keysToRemove: string[] = []
+        for (let i = 0; i < localStorage.length; i++) {
+            const key = localStorage.key(i)
+            if (key && (key.startsWith('sb-') || key.includes('supabase'))) {
+                keysToRemove.push(key)
             }
         }
-        setProfileLoading(false)
-        return null
-    }
+        keysToRemove.forEach(key => localStorage.removeItem(key))
+    }, [])
 
-    const refreshProfile = async () => {
-        if (user) {
-            const profileData = await fetchProfile(user.id)
+    // Fetch profile with timeout
+    const fetchProfile = useCallback(async (userId: string): Promise<Profile | null> => {
+        const controller = new AbortController()
+        const timeoutId = setTimeout(() => controller.abort(), 10000) // 10 second timeout
+
+        try {
+            const { data, error } = await supabase
+                .from('profiles')
+                .select('*')
+                .eq('id', userId)
+                .single()
+                .abortSignal(controller.signal)
+
+            clearTimeout(timeoutId)
+
+            if (error) {
+                console.error('Error fetching profile:', error)
+                return null
+            }
+            return data
+        } catch (err) {
+            clearTimeout(timeoutId)
+            console.error('Exception fetching profile:', err)
+            return null
+        }
+    }, [])
+
+    // Retry loading profile
+    const retryLoadProfile = useCallback(async () => {
+        if (!user) return
+
+        setAppState('profile_loading')
+        setErrorMessage(null)
+
+        const profileData = await fetchProfile(user.id)
+
+        if (profileData) {
             setProfile(profileData)
+            setAppState('authenticated')
+        } else {
+            setErrorMessage('No se pudo cargar tu perfil. Por favor, intenta de nuevo.')
+            setAppState('profile_error')
         }
-    }
+    }, [user, fetchProfile])
 
+    // Initialize session on mount
     useEffect(() => {
-        // Safety timeout to prevent infinite loading
+        let isMounted = true
+
+        // Safety timeout - if we're still loading after 15 seconds, something is wrong
         const safetyTimeout = setTimeout(() => {
-            if (loading) {
-                console.warn('Session initialization timed out after 10 seconds')
-                setLoading(false)
-                // Clear potentially corrupted auth data
-                supabase.auth.signOut().catch(console.error)
+            if (isMounted && appState === 'loading') {
+                console.warn('Safety timeout triggered - clearing auth data')
+                clearAuthData()
+                setAppState('unauthenticated')
             }
-        }, 10000)
+        }, 15000)
 
-        // Helper function to clear auth data
-        const clearAuthData = () => {
-            const keysToRemove: string[] = []
-            for (let i = 0; i < localStorage.length; i++) {
-                const key = localStorage.key(i)
-                if (key && (key.startsWith('sb-') || key.includes('supabase'))) {
-                    keysToRemove.push(key)
-                }
-            }
-            keysToRemove.forEach(key => localStorage.removeItem(key))
-        }
-
-        // Get initial session with improved error handling
-        const initializeSession = async () => {
+        const initializeAuth = async () => {
             try {
-                // Check if there's existing auth data that might be corrupted
-                const hasStoredSession = Object.keys(localStorage).some(key =>
-                    key.startsWith('sb-') || key.includes('supabase')
-                )
-
                 const { data: { session }, error } = await supabase.auth.getSession()
 
-                if (error) {
-                    console.error('Error getting session:', error)
-                    clearAuthData()
-                    setLoading(false)
-                    clearTimeout(safetyTimeout)
+                if (!isMounted) return
+
+                if (error || !session) {
+                    // Check if there's stale data in localStorage
+                    const hasStoredData = Object.keys(localStorage).some(key =>
+                        key.startsWith('sb-') || key.includes('supabase')
+                    )
+                    if (hasStoredData && !session) {
+                        console.warn('Clearing stale auth data')
+                        clearAuthData()
+                    }
+                    setAppState('unauthenticated')
                     return
                 }
 
-                // If we had stored data but no valid session, clear the corrupted data
-                if (hasStoredSession && !session) {
-                    console.warn('Stored session data exists but session is invalid, clearing...')
-                    clearAuthData()
-                }
-
                 setSession(session)
-                setUser(session?.user ?? null)
+                setUser(session.user)
+                setAppState('profile_loading')
 
-                if (session?.user) {
-                    try {
-                        const profileData = await fetchProfile(session.user.id)
-                        setProfile(profileData)
-                    } catch (profileError) {
-                        console.error('Error fetching profile during init:', profileError)
-                    }
+                // Load profile
+                const profileData = await fetchProfile(session.user.id)
+
+                if (!isMounted) return
+
+                if (profileData) {
+                    setProfile(profileData)
+                    setAppState('authenticated')
+                } else {
+                    setErrorMessage('Error al cargar el perfil')
+                    setAppState('profile_error')
                 }
-                setLoading(false)
-            } catch (error) {
-                console.error('Fatal error initializing session:', error)
-                clearAuthData()
-                setLoading(false)
-            } finally {
-                clearTimeout(safetyTimeout)
+            } catch (err) {
+                console.error('Fatal error during auth initialization:', err)
+                if (isMounted) {
+                    clearAuthData()
+                    setAppState('unauthenticated')
+                }
             }
         }
 
-        initializeSession()
+        initializeAuth()
 
-        // Listen for auth changes
+        // Listen for auth state changes
         const { data: { subscription } } = supabase.auth.onAuthStateChange(
-            async (event, session) => {
-                console.log('Auth state changed:', event)
+            async (event, newSession) => {
+                console.log('Auth event:', event)
 
-                // Handle token refresh
-                if (event === 'TOKEN_REFRESHED') {
-                    console.log('Token refreshed successfully')
-                }
+                if (!isMounted) return
 
-                setSession(session)
-                setUser(session?.user ?? null)
-
-                if (session?.user) {
-                    try {
-                        const profileData = await fetchProfile(session.user.id)
-                        setProfile(profileData)
-                    } catch (error) {
-                        console.error('Error fetching profile on auth change:', error)
-                        setProfile(null)
-                    }
-                } else {
+                if (event === 'SIGNED_OUT' || !newSession) {
+                    setSession(null)
+                    setUser(null)
                     setProfile(null)
+                    setAppState('unauthenticated')
+                    return
                 }
 
-                setLoading(false)
+                if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
+                    setSession(newSession)
+                    setUser(newSession.user)
+
+                    // Only reload profile on sign in, not on token refresh
+                    if (event === 'SIGNED_IN') {
+                        setAppState('profile_loading')
+                        const profileData = await fetchProfile(newSession.user.id)
+
+                        if (!isMounted) return
+
+                        if (profileData) {
+                            setProfile(profileData)
+                            setAppState('authenticated')
+                        } else {
+                            setErrorMessage('Error al cargar el perfil')
+                            setAppState('profile_error')
+                        }
+                    }
+                }
             }
         )
 
-        // Auto refresh session every 10 minutes to prevent token expiration
-        const refreshInterval = setInterval(async () => {
-            const { data: { session: currentSession } } = await supabase.auth.getSession()
-            if (currentSession) {
-                const { error } = await supabase.auth.refreshSession()
-                if (error) {
-                    console.error('Session refresh error:', error)
-                } else {
-                    console.log('Session refreshed proactively')
-                }
-            }
-        }, 10 * 60 * 1000) // 10 minutes
-
         return () => {
+            isMounted = false
+            clearTimeout(safetyTimeout)
             subscription.unsubscribe()
-            clearInterval(refreshInterval)
         }
-    }, [])
+    }, [fetchProfile, clearAuthData])
 
     const signUp = async (email: string, password: string, name?: string) => {
         const { error } = await supabase.auth.signUp({
@@ -208,48 +202,30 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
 
     const signIn = async (email: string, password: string) => {
+        setAppState('loading')
         const { error } = await supabase.auth.signInWithPassword({
             email,
             password
         })
-        return { error }
-    }
-
-    const signInWithGoogle = async () => {
-        const { error } = await supabase.auth.signInWithOAuth({
-            provider: 'google',
-            options: {
-                redirectTo: window.location.origin
-            }
-        })
+        if (error) {
+            setAppState('unauthenticated')
+        }
         return { error }
     }
 
     const signOut = async () => {
         try {
-            // Clear all state first
             setUser(null)
             setProfile(null)
             setSession(null)
 
-            // Sign out from Supabase
             await supabase.auth.signOut({ scope: 'local' })
+            clearAuthData()
 
-            // Clear all Supabase-related localStorage items
-            const keysToRemove: string[] = []
-            for (let i = 0; i < localStorage.length; i++) {
-                const key = localStorage.key(i)
-                if (key && (key.startsWith('sb-') || key.includes('supabase'))) {
-                    keysToRemove.push(key)
-                }
-            }
-            keysToRemove.forEach(key => localStorage.removeItem(key))
-
-            // Force page reload to ensure clean state
+            // Force full page reload
             window.location.href = window.location.origin
         } catch (error) {
             console.error('Error during sign out:', error)
-            // Even if there's an error, clear local state and reload
             localStorage.clear()
             window.location.href = window.location.origin
         }
@@ -272,27 +248,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return { error: error ? new Error(error.message) : null }
     }
 
-    const retryLoadProfile = async () => {
-        if (user) {
-            const profileData = await fetchProfile(user.id)
-            setProfile(profileData)
-        }
-    }
-
     return (
         <AuthContext.Provider value={{
             user,
             profile,
             session,
-            loading,
-            profileLoading,
-            profileError,
+            appState,
+            errorMessage,
             signUp,
             signIn,
-            signInWithGoogle,
             signOut,
             updateProfile,
-            refreshProfile,
             retryLoadProfile
         }}>
             {children}
