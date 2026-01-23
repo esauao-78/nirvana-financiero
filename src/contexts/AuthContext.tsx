@@ -10,12 +10,15 @@ interface AuthContextType {
     profile: Profile | null
     session: Session | null
     loading: boolean
+    profileLoading: boolean
+    profileError: string | null
     signUp: (email: string, password: string, name?: string) => Promise<{ error: AuthError | null }>
     signIn: (email: string, password: string) => Promise<{ error: AuthError | null }>
     signInWithGoogle: () => Promise<{ error: AuthError | null }>
     signOut: () => Promise<void>
     updateProfile: (updates: Partial<Profile>) => Promise<{ error: Error | null }>
     refreshProfile: () => Promise<void>
+    retryLoadProfile: () => Promise<void>
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
@@ -25,19 +28,47 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const [profile, setProfile] = useState<Profile | null>(null)
     const [session, setSession] = useState<Session | null>(null)
     const [loading, setLoading] = useState(true)
+    const [profileLoading, setProfileLoading] = useState(false)
+    const [profileError, setProfileError] = useState<string | null>(null)
 
-    const fetchProfile = async (userId: string) => {
-        const { data, error } = await supabase
-            .from('profiles')
-            .select('*')
-            .eq('id', userId)
-            .single()
+    const fetchProfile = async (userId: string, retries = 3): Promise<Profile | null> => {
+        setProfileLoading(true)
+        setProfileError(null)
 
-        if (error) {
-            console.error('Error fetching profile:', error)
-            return null
+        for (let attempt = 1; attempt <= retries; attempt++) {
+            try {
+                const { data, error } = await supabase
+                    .from('profiles')
+                    .select('*')
+                    .eq('id', userId)
+                    .single()
+
+                if (error) {
+                    console.error(`Error fetching profile (attempt ${attempt}/${retries}):`, error)
+                    if (attempt === retries) {
+                        setProfileError(`No se pudo cargar el perfil: ${error.message}`)
+                        setProfileLoading(false)
+                        return null
+                    }
+                    // Wait before retry
+                    await new Promise(resolve => setTimeout(resolve, 1000 * attempt))
+                    continue
+                }
+
+                setProfileLoading(false)
+                return data
+            } catch (err) {
+                console.error(`Exception fetching profile (attempt ${attempt}/${retries}):`, err)
+                if (attempt === retries) {
+                    setProfileError('Error de conexión al cargar perfil')
+                    setProfileLoading(false)
+                    return null
+                }
+                await new Promise(resolve => setTimeout(resolve, 1000 * attempt))
+            }
         }
-        return data
+        setProfileLoading(false)
+        return null
     }
 
     const refreshProfile = async () => {
@@ -241,18 +272,28 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return { error: error ? new Error(error.message) : null }
     }
 
+    const retryLoadProfile = async () => {
+        if (user) {
+            const profileData = await fetchProfile(user.id)
+            setProfile(profileData)
+        }
+    }
+
     return (
         <AuthContext.Provider value={{
             user,
             profile,
             session,
             loading,
+            profileLoading,
+            profileError,
             signUp,
             signIn,
             signInWithGoogle,
             signOut,
             updateProfile,
-            refreshProfile
+            refreshProfile,
+            retryLoadProfile
         }}>
             {children}
         </AuthContext.Provider>
