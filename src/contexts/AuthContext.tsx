@@ -41,40 +41,70 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         keysToRemove.forEach(key => localStorage.removeItem(key))
     }, [])
 
-    // Fetch profile with timeout
-    const fetchProfile = useCallback(async (userId: string): Promise<Profile | null> => {
+    // Fetch profile with proper timeout using native fetch
+    const fetchProfile = useCallback(async (userId: string, accessToken?: string): Promise<Profile | null> => {
         console.log('[Auth] Fetching profile for:', userId)
 
+        // Get current session token if not provided
+        let token = accessToken
+        if (!token) {
+            const { data } = await supabase.auth.getSession()
+            token = data.session?.access_token
+        }
+
+        if (!token) {
+            console.error('[Auth] No access token available for profile fetch')
+            return null
+        }
+
+        const controller = new AbortController()
+        const timeoutId = setTimeout(() => {
+            console.warn('[Auth] Profile fetch timeout - aborting')
+            controller.abort()
+        }, 8000) // 8 second timeout
+
         try {
-            // Create a timeout promise
-            const timeoutPromise = new Promise<null>((_, reject) =>
-                setTimeout(() => reject(new Error('Profile fetch timeout')), 10000)
+            const supabaseUrl = 'https://kniogteqfxcfadjomxls.supabase.co'
+            const response = await fetch(
+                `${supabaseUrl}/rest/v1/profiles?id=eq.${userId}&select=*`,
+                {
+                    method: 'GET',
+                    headers: {
+                        'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtuaW9ndGVxZnhjZmFkam9teGxzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjkwNDg4MDYsImV4cCI6MjA4NDYyNDgwNn0.0oygP8UywmlkE2SFKOilRELk4B-xFvHS6HJPgowMjhE',
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                        'Prefer': 'return=representation'
+                    },
+                    signal: controller.signal
+                }
             )
 
-            const fetchPromise = supabase
-                .from('profiles')
-                .select('*')
-                .eq('id', userId)
-                .single()
+            clearTimeout(timeoutId)
 
-            const result = await Promise.race([fetchPromise, timeoutPromise])
-
-            if (result === null) {
-                console.error('[Auth] Profile fetch timed out')
+            if (!response.ok) {
+                const errorText = await response.text()
+                console.error('[Auth] Profile fetch HTTP error:', response.status, errorText)
                 return null
             }
 
-            const { data, error } = result as { data: Profile | null, error: unknown }
+            const data = await response.json()
+            console.log('[Auth] Profile fetch response:', data)
 
-            if (error) {
-                console.error('[Auth] Error fetching profile:', error)
-                return null
+            if (Array.isArray(data) && data.length > 0) {
+                console.log('[Auth] Profile fetched successfully:', data[0].nombre)
+                return data[0] as Profile
             }
 
-            console.log('[Auth] Profile fetched successfully:', data?.nombre)
-            return data
+            console.warn('[Auth] No profile found for user')
+            return null
         } catch (err) {
-            console.error('[Auth] Exception fetching profile:', err)
+            clearTimeout(timeoutId)
+            if (err instanceof Error && err.name === 'AbortError') {
+                console.error('[Auth] Profile fetch aborted due to timeout')
+            } else {
+                console.error('[Auth] Exception fetching profile:', err)
+            }
             return null
         }
     }, [])
@@ -158,7 +188,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                     setAppState('profile_loading')
 
                     // Load profile with the fresh token
-                    const profileData = await fetchProfile(refreshData.session.user.id)
+                    const profileData = await fetchProfile(refreshData.session.user.id, refreshData.session.access_token)
 
                     if (!isMounted) return
 
@@ -207,7 +237,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                     // Only reload profile on sign in, not on token refresh
                     if (event === 'SIGNED_IN') {
                         setAppState('profile_loading')
-                        const profileData = await fetchProfile(newSession.user.id)
+                        const profileData = await fetchProfile(newSession.user.id, newSession.access_token)
 
                         if (!isMounted) return
 
