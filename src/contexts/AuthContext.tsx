@@ -139,19 +139,40 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
                 setSession(session)
                 setUser(session.user)
-                setAppState('profile_loading')
+                console.log('[Auth] Session valid, refreshing token before profile fetch...')
 
-                // Load profile
-                const profileData = await fetchProfile(session.user.id)
+                // Refresh the session to ensure the JWT is fresh and valid for RLS
+                const { data: refreshData, error: refreshError } = await supabase.auth.refreshSession()
 
-                if (!isMounted) return
+                if (refreshError) {
+                    console.error('[Auth] Failed to refresh session:', refreshError)
+                    // Token might be expired beyond refresh, clear and force re-login
+                    clearAuthData()
+                    setAppState('unauthenticated')
+                    return
+                }
 
-                if (profileData) {
-                    setProfile(profileData)
-                    setAppState('authenticated')
+                if (refreshData.session) {
+                    console.log('[Auth] Session refreshed successfully, fetching profile...')
+                    setSession(refreshData.session)
+                    setAppState('profile_loading')
+
+                    // Load profile with the fresh token
+                    const profileData = await fetchProfile(refreshData.session.user.id)
+
+                    if (!isMounted) return
+
+                    if (profileData) {
+                        setProfile(profileData)
+                        setAppState('authenticated')
+                    } else {
+                        setErrorMessage('Error al cargar el perfil. Por favor, cierra sesión e intenta de nuevo.')
+                        setAppState('profile_error')
+                    }
                 } else {
-                    setErrorMessage('Error al cargar el perfil')
-                    setAppState('profile_error')
+                    console.warn('[Auth] No session after refresh, clearing data')
+                    clearAuthData()
+                    setAppState('unauthenticated')
                 }
             } catch (err) {
                 console.error('Fatal error during auth initialization:', err)
