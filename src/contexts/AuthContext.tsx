@@ -48,19 +48,74 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
 
     useEffect(() => {
-        // Get initial session
-        supabase.auth.getSession().then(async ({ data: { session } }) => {
-            setSession(session)
-            setUser(session?.user ?? null)
-            if (session?.user) {
-                const profileData = await fetchProfile(session.user.id)
-                setProfile(profileData)
+        // Safety timeout to prevent infinite loading
+        const safetyTimeout = setTimeout(() => {
+            if (loading) {
+                console.warn('Session initialization timed out after 10 seconds')
+                setLoading(false)
+                // Clear potentially corrupted auth data
+                supabase.auth.signOut().catch(console.error)
             }
-            setLoading(false)
-        }).catch((error) => {
-            console.error('Error getting session:', error)
-            setLoading(false)
-        })
+        }, 10000)
+
+        // Helper function to clear auth data
+        const clearAuthData = () => {
+            const keysToRemove: string[] = []
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i)
+                if (key && (key.startsWith('sb-') || key.includes('supabase'))) {
+                    keysToRemove.push(key)
+                }
+            }
+            keysToRemove.forEach(key => localStorage.removeItem(key))
+        }
+
+        // Get initial session with improved error handling
+        const initializeSession = async () => {
+            try {
+                // Check if there's existing auth data that might be corrupted
+                const hasStoredSession = Object.keys(localStorage).some(key =>
+                    key.startsWith('sb-') || key.includes('supabase')
+                )
+
+                const { data: { session }, error } = await supabase.auth.getSession()
+
+                if (error) {
+                    console.error('Error getting session:', error)
+                    clearAuthData()
+                    setLoading(false)
+                    clearTimeout(safetyTimeout)
+                    return
+                }
+
+                // If we had stored data but no valid session, clear the corrupted data
+                if (hasStoredSession && !session) {
+                    console.warn('Stored session data exists but session is invalid, clearing...')
+                    clearAuthData()
+                }
+
+                setSession(session)
+                setUser(session?.user ?? null)
+
+                if (session?.user) {
+                    try {
+                        const profileData = await fetchProfile(session.user.id)
+                        setProfile(profileData)
+                    } catch (profileError) {
+                        console.error('Error fetching profile during init:', profileError)
+                    }
+                }
+                setLoading(false)
+            } catch (error) {
+                console.error('Fatal error initializing session:', error)
+                clearAuthData()
+                setLoading(false)
+            } finally {
+                clearTimeout(safetyTimeout)
+            }
+        }
+
+        initializeSession()
 
         // Listen for auth changes
         const { data: { subscription } } = supabase.auth.onAuthStateChange(
@@ -140,10 +195,33 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
 
     const signOut = async () => {
-        await supabase.auth.signOut()
-        setUser(null)
-        setProfile(null)
-        setSession(null)
+        try {
+            // Clear all state first
+            setUser(null)
+            setProfile(null)
+            setSession(null)
+
+            // Sign out from Supabase
+            await supabase.auth.signOut({ scope: 'local' })
+
+            // Clear all Supabase-related localStorage items
+            const keysToRemove: string[] = []
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i)
+                if (key && (key.startsWith('sb-') || key.includes('supabase'))) {
+                    keysToRemove.push(key)
+                }
+            }
+            keysToRemove.forEach(key => localStorage.removeItem(key))
+
+            // Force page reload to ensure clean state
+            window.location.href = window.location.origin
+        } catch (error) {
+            console.error('Error during sign out:', error)
+            // Even if there's an error, clear local state and reload
+            localStorage.clear()
+            window.location.href = window.location.origin
+        }
     }
 
     const updateProfile = async (updates: Partial<Profile>) => {
