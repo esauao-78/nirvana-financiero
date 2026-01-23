@@ -147,8 +147,8 @@ export function TasksList() {
                     <button
                         onClick={() => changeEstado(task.id, task.estado === 'completada' ? 'pendiente' : 'completada')}
                         className={`mt-1 w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all ${task.estado === 'completada'
-                                ? 'bg-green-500 border-green-500 text-white'
-                                : 'border-gray-300 dark:border-gray-600 hover:border-green-500'
+                            ? 'bg-green-500 border-green-500 text-white'
+                            : 'border-gray-300 dark:border-gray-600 hover:border-green-500'
                             }`}
                     >
                         {task.estado === 'completada' && <Check className="w-3 h-3" />}
@@ -161,7 +161,7 @@ export function TasksList() {
                             {task.fecha_limite && (
                                 <span className="flex items-center gap-1 text-xs text-orange-500">
                                     <Calendar className="w-3 h-3" />
-                                    {new Date(task.fecha_limite).toLocaleDateString('es-MX', { day: 'numeric', month: 'short' })}
+                                    {new Date(task.fecha_limite).toLocaleDateString('es-MX', { day: '2-digit', month: '2-digit' })}
                                 </span>
                             )}
                             {task.recordatorio && (
@@ -288,8 +288,8 @@ export function TasksList() {
                                             key={h.value}
                                             onClick={() => setHoraPreferida(h.value as any)}
                                             className={`p-2 rounded-xl text-sm font-medium transition-all ${horaPreferida === h.value
-                                                    ? 'bg-indigo-500 text-white'
-                                                    : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200'
+                                                ? 'bg-indigo-500 text-white'
+                                                : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200'
                                                 }`}
                                         >
                                             {h.label.split(' ')[0]}
@@ -401,7 +401,7 @@ export function TasksList() {
                             key={estadoCol.value}
                             onDragOver={handleDragOver}
                             onDrop={(e) => handleDrop(e, estadoCol.value)}
-                            className={`min-h-[200px] ${draggedTaskId ? 'bg-gray-50 dark:bg-gray-800/50 rounded-xl border-2 border-dashed border-gray-300 dark:border-gray-600' : ''}`}
+                            className={`flex flex-col min-h-[200px] ${draggedTaskId ? 'bg-gray-50 dark:bg-gray-800/50 rounded-xl border-2 border-dashed border-gray-300 dark:border-gray-600' : ''}`}
                         >
                             <div className={`p-3 rounded-xl mb-3 ${estadoCol.color}`}>
                                 <div className="flex items-center justify-between font-semibold">
@@ -411,7 +411,7 @@ export function TasksList() {
                                     </span>
                                 </div>
                             </div>
-                            <div className="space-y-3">
+                            <div className="flex-1 space-y-3 overflow-y-auto max-h-[60vh] pr-1">
                                 {tasksByEstado[estadoCol.value].map(task => (
                                     <TaskCard key={task.id} task={task} />
                                 ))}

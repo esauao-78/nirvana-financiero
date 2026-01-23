@@ -22,7 +22,7 @@ interface SidebarProps {
 }
 
 const menuItems: Array<{ id: ViewType; icon: React.ElementType; label: string; color: string }> = [
-    { id: 'dashboard', icon: BarChart3, label: 'Dashboard', color: 'text-blue-500' },
+    { id: 'dashboard', icon: BarChart3, label: 'Inicio', color: 'text-blue-500' },
     { id: 'metas', icon: Target, label: 'Mis Metas', color: 'text-gold-500' },
     { id: 'tareas', icon: ListTodo, label: 'Tareas', color: 'text-indigo-500' },
     { id: 'rutina', icon: CheckSquare, label: 'Rutina Diaria', color: 'text-green-500' },

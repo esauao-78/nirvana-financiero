@@ -141,6 +141,18 @@ function AppContent() {
                 </main>
             </div>
 
+            {/* Floating Coach Button */}
+            <button
+                onClick={() => setCoachOpen(true)}
+                className="fixed bottom-6 right-6 w-14 h-14 bg-gradient-to-r from-brand-blue to-indigo-600 rounded-full shadow-lg hover:shadow-xl transition-all flex items-center justify-center group z-40"
+                title="Tu Coach IA"
+            >
+                <span className="text-2xl">🧠</span>
+                <span className="absolute right-full mr-3 bg-gray-900 text-white text-sm px-3 py-1.5 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+                    Tu Coach IA
+                </span>
+            </button>
+
             <CoachModal
                 isOpen={coachOpen}
                 onClose={() => setCoachOpen(false)}

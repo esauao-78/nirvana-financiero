@@ -166,7 +166,7 @@ export function GoalsList() {
                             {goal.fecha_limite && (
                                 <span className="flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400">
                                     <Calendar className="w-3 h-3" />
-                                    {new Date(goal.fecha_limite).toLocaleDateString('es-MX', { day: 'numeric', month: 'short' })}
+                                    {new Date(goal.fecha_limite).toLocaleDateString('es-MX', { day: '2-digit', month: '2-digit' })}
                                 </span>
                             )}
                         </div>
@@ -386,11 +386,11 @@ export function GoalsList() {
 
             {/* KANBAN VIEW with Drag & Drop */}
             {viewMode === 'kanban' && (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 overflow-x-auto">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                     {estados.map(estadoCol => (
                         <div
                             key={estadoCol.value}
-                            className={`min-w-[280px] ${draggedGoalId ? 'bg-gray-50 dark:bg-gray-800/50 rounded-xl border-2 border-dashed border-gray-300 dark:border-gray-600' : ''}`}
+                            className={`flex flex-col min-w-[250px] ${draggedGoalId ? 'bg-gray-50 dark:bg-gray-800/50 rounded-xl border-2 border-dashed border-gray-300 dark:border-gray-600' : ''}`}
                             onDragOver={handleDragOver}
                             onDrop={(e) => handleDrop(e, estadoCol.value)}
                         >
@@ -405,7 +405,7 @@ export function GoalsList() {
                                     </span>
                                 </div>
                             </div>
-                            <div className="space-y-3">
+                            <div className="flex-1 space-y-3 overflow-y-auto max-h-[60vh] pr-1">
                                 {goalsByEstado[estadoCol.value].map(goal => (
                                     <GoalCard key={goal.id} goal={goal} compact />
                                 ))}
