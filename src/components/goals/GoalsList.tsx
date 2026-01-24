@@ -149,20 +149,22 @@ export function GoalsList() {
         if (!goal) return
 
         const estado = goal.estado || 'no_iniciada'
-        const goalsInColumn = goalsByEstado[estado as EstadoMeta].sort((a, b) => (a.orden || 0) - (b.orden || 0))
+        const goalsInColumn = [...goalsByEstado[estado as EstadoMeta]].sort((a, b) => (a.orden || 0) - (b.orden || 0))
         const currentIndex = goalsInColumn.findIndex(g => g.id === goalId)
 
         if (direction === 'up' && currentIndex > 0) {
+            // Swap with previous: give current the previous index, give previous the current index
             const prevGoal = goalsInColumn[currentIndex - 1]
             await reorderGoals([
-                { id: goalId, orden: prevGoal.orden || 0 },
-                { id: prevGoal.id, orden: goal.orden || 0 }
+                { id: goalId, orden: currentIndex - 1 },
+                { id: prevGoal.id, orden: currentIndex }
             ])
         } else if (direction === 'down' && currentIndex < goalsInColumn.length - 1) {
+            // Swap with next: give current the next index, give next the current index  
             const nextGoal = goalsInColumn[currentIndex + 1]
             await reorderGoals([
-                { id: goalId, orden: nextGoal.orden || 0 },
-                { id: nextGoal.id, orden: goal.orden || 0 }
+                { id: goalId, orden: currentIndex + 1 },
+                { id: nextGoal.id, orden: currentIndex }
             ])
         }
     }

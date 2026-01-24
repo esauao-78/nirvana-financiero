@@ -132,20 +132,22 @@ export function TasksList() {
         if (!task) return
 
         const estado = task.estado
-        const tasksInColumn = tasksByEstado[estado].sort((a, b) => (a.orden || 0) - (b.orden || 0))
+        const tasksInColumn = [...tasksByEstado[estado]].sort((a, b) => (a.orden || 0) - (b.orden || 0))
         const currentIndex = tasksInColumn.findIndex(t => t.id === taskId)
 
         if (direction === 'up' && currentIndex > 0) {
+            // Swap with previous: give current the previous index, give previous the current index
             const prevTask = tasksInColumn[currentIndex - 1]
             await reorderTasks([
-                { id: taskId, orden: prevTask.orden || 0 },
-                { id: prevTask.id, orden: task.orden || 0 }
+                { id: taskId, orden: currentIndex - 1 },
+                { id: prevTask.id, orden: currentIndex }
             ])
         } else if (direction === 'down' && currentIndex < tasksInColumn.length - 1) {
+            // Swap with next: give current the next index, give next the current index
             const nextTask = tasksInColumn[currentIndex + 1]
             await reorderTasks([
-                { id: taskId, orden: nextTask.orden || 0 },
-                { id: nextTask.id, orden: task.orden || 0 }
+                { id: taskId, orden: currentIndex + 1 },
+                { id: nextTask.id, orden: currentIndex }
             ])
         }
     }
