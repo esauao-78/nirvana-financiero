@@ -120,6 +120,7 @@ export interface Database {
                     valor_objetivo: number
                     valor_actual: number
                     estado: 'no_iniciada' | 'en_progreso' | 'completada' | 'en_pausa'
+                    orden: number
                     created_at: string
                     updated_at: string
                 }
@@ -137,6 +138,7 @@ export interface Database {
                     valor_objetivo?: number
                     valor_actual?: number
                     estado?: 'no_iniciada' | 'en_progreso' | 'completada' | 'en_pausa'
+                    orden?: number
                     created_at?: string
                     updated_at?: string
                 }
@@ -154,6 +156,7 @@ export interface Database {
                     valor_objetivo?: number
                     valor_actual?: number
                     estado?: 'no_iniciada' | 'en_progreso' | 'completada' | 'en_pausa'
+                    orden?: number
                     created_at?: string
                     updated_at?: string
                 }
@@ -403,6 +406,7 @@ export interface Database {
                     recordatorio_minutos: number
                     estado: 'pendiente' | 'en_progreso' | 'completada' | 'cancelada'
                     tiempo_dedicado: number
+                    orden: number
                     created_at: string
                     updated_at: string
                 }
@@ -419,6 +423,7 @@ export interface Database {
                     recordatorio_minutos?: number
                     estado?: 'pendiente' | 'en_progreso' | 'completada' | 'cancelada'
                     tiempo_dedicado?: number
+                    orden?: number
                     created_at?: string
                     updated_at?: string
                 }
@@ -435,6 +440,7 @@ export interface Database {
                     recordatorio_minutos?: number
                     estado?: 'pendiente' | 'en_progreso' | 'completada' | 'cancelada'
                     tiempo_dedicado?: number
+                    orden?: number
                     created_at?: string
                     updated_at?: string
                 }

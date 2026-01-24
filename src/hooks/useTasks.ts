@@ -19,6 +19,7 @@ export function useTasks() {
             .from('tasks')
             .select('*')
             .eq('user_id', user.id)
+            .order('orden', { ascending: true })
             .order('created_at', { ascending: false })
 
         if (error) {
@@ -37,9 +38,15 @@ export function useTasks() {
     const createTask = async (task: Omit<TaskInsert, 'user_id'>) => {
         if (!user) return { error: new Error('No user'), data: null }
 
+        // Get max orden for this estado
+        const tasksInEstado = tasks.filter(t => t.estado === (task.estado || 'pendiente'))
+        const maxOrden = tasksInEstado.length > 0
+            ? Math.max(...tasksInEstado.map(t => t.orden || 0))
+            : 0
+
         const { data, error } = await supabase
             .from('tasks')
-            .insert({ ...task, user_id: user.id })
+            .insert({ ...task, user_id: user.id, orden: maxOrden + 1 })
             .select()
             .single()
 
@@ -85,6 +92,26 @@ export function useTasks() {
         })
     }
 
+    // Reorder tasks within a column (estado)
+    const reorderTasks = async (reorderedTasks: { id: string; orden: number }[]) => {
+        // Update local state optimistically
+        setTasks(prev => {
+            const updated = [...prev]
+            reorderedTasks.forEach(({ id, orden }) => {
+                const task = updated.find(t => t.id === id)
+                if (task) task.orden = orden
+            })
+            return updated.sort((a, b) => (a.orden || 0) - (b.orden || 0))
+        })
+
+        // Update in database
+        const updates = reorderedTasks.map(({ id, orden }) =>
+            supabase.from('tasks').update({ orden }).eq('id', id)
+        )
+
+        await Promise.all(updates)
+    }
+
     const pendingTasks = tasks.filter(t => t.estado === 'pendiente')
     const inProgressTasks = tasks.filter(t => t.estado === 'en_progreso')
     const completedTasks = tasks.filter(t => t.estado === 'completada')
@@ -99,6 +126,7 @@ export function useTasks() {
         updateTask,
         deleteTask,
         addTimeToTask,
+        reorderTasks,
         refresh: fetchTasks
     }
 }

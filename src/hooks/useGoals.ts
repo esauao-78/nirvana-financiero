@@ -20,6 +20,7 @@ export function useGoals() {
             .select('*')
             .eq('user_id', user.id)
             .eq('archivada', false)
+            .order('orden', { ascending: true })
             .order('created_at', { ascending: false })
 
         if (error) {
@@ -38,9 +39,15 @@ export function useGoals() {
     const createGoal = async (goal: Omit<GoalInsert, 'user_id'>) => {
         if (!user) return { error: new Error('No user'), data: null }
 
+        // Get max orden for this estado
+        const goalsInEstado = goals.filter(g => g.estado === (goal.estado || 'no_iniciada'))
+        const maxOrden = goalsInEstado.length > 0
+            ? Math.max(...goalsInEstado.map(g => g.orden || 0))
+            : 0
+
         const { data, error } = await supabase
             .from('goals')
-            .insert({ ...goal, user_id: user.id })
+            .insert({ ...goal, user_id: user.id, orden: maxOrden + 1 })
             .select()
             .single()
 
@@ -81,6 +88,26 @@ export function useGoals() {
         return updateGoal(id, { completada, progreso: completada ? 100 : undefined })
     }
 
+    // Reorder goals within a column (estado)
+    const reorderGoals = async (reorderedGoals: { id: string; orden: number }[]) => {
+        // Update local state optimistically
+        setGoals(prev => {
+            const updated = [...prev]
+            reorderedGoals.forEach(({ id, orden }) => {
+                const goal = updated.find(g => g.id === id)
+                if (goal) goal.orden = orden
+            })
+            return updated.sort((a, b) => (a.orden || 0) - (b.orden || 0))
+        })
+
+        // Update in database
+        const updates = reorderedGoals.map(({ id, orden }) =>
+            supabase.from('goals').update({ orden }).eq('id', id)
+        )
+
+        await Promise.all(updates)
+    }
+
     const activeGoals = goals.filter(g => !g.completada)
     const completedGoals = goals.filter(g => g.completada)
 
@@ -93,6 +120,7 @@ export function useGoals() {
         updateGoal,
         deleteGoal,
         toggleComplete,
+        reorderGoals,
         refresh: fetchGoals
     }
 }
