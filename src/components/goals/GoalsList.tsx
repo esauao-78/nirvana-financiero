@@ -1,13 +1,13 @@
 import { useState, DragEvent } from 'react'
 import { useGoals } from '../../hooks/useGoals'
 import { DateInput } from '../ui/DateInput'
-import { Plus, Target, Trash2, Edit2, Check, Calendar, List, LayoutGrid, DollarSign, TrendingUp, Pause, Play } from 'lucide-react'
+import { Plus, Target, Trash2, Edit2, Check, Calendar, List, LayoutGrid, DollarSign, TrendingUp, Pause, Play, ChevronUp, ChevronDown } from 'lucide-react'
 
 type ViewMode = 'list' | 'kanban'
 type EstadoMeta = 'no_iniciada' | 'en_progreso' | 'completada' | 'en_pausa'
 
 export function GoalsList() {
-    const { goals, createGoal, updateGoal, deleteGoal, loading } = useGoals()
+    const { goals, createGoal, updateGoal, deleteGoal, reorderGoals, loading } = useGoals()
     const [showForm, setShowForm] = useState(false)
     const [editingId, setEditingId] = useState<string | null>(null)
     const [viewMode, setViewMode] = useState<ViewMode>('kanban')
@@ -143,6 +143,30 @@ export function GoalsList() {
         completada: goals.filter(g => g.estado === 'completada' || g.completada),
     }
 
+    // Move goal up or down within its column
+    const moveGoal = async (goalId: string, direction: 'up' | 'down') => {
+        const goal = goals.find(g => g.id === goalId)
+        if (!goal) return
+
+        const estado = goal.estado || 'no_iniciada'
+        const goalsInColumn = goalsByEstado[estado as EstadoMeta].sort((a, b) => (a.orden || 0) - (b.orden || 0))
+        const currentIndex = goalsInColumn.findIndex(g => g.id === goalId)
+
+        if (direction === 'up' && currentIndex > 0) {
+            const prevGoal = goalsInColumn[currentIndex - 1]
+            await reorderGoals([
+                { id: goalId, orden: prevGoal.orden || 0 },
+                { id: prevGoal.id, orden: goal.orden || 0 }
+            ])
+        } else if (direction === 'down' && currentIndex < goalsInColumn.length - 1) {
+            const nextGoal = goalsInColumn[currentIndex + 1]
+            await reorderGoals([
+                { id: goalId, orden: nextGoal.orden || 0 },
+                { id: nextGoal.id, orden: goal.orden || 0 }
+            ])
+        }
+    }
+
     const GoalCard = ({ goal, compact = false }: { goal: typeof goals[0]; compact?: boolean }) => {
         const progress = goal.valor_objetivo > 0
             ? Math.min(100, Math.round((goal.valor_actual / goal.valor_objetivo) * 100))
@@ -200,7 +224,22 @@ export function GoalsList() {
                         )}
 
                         {/* Action buttons - always visible */}
-                        <div className="flex items-center gap-2 mt-3">
+                        <div className="flex items-center gap-1 mt-3">
+                            <button
+                                onClick={() => moveGoal(goal.id, 'up')}
+                                className="p-1 text-gray-400 hover:text-gold-500 hover:bg-gold-50 dark:hover:bg-gold-900/20 rounded transition-colors"
+                                title="Mover arriba"
+                            >
+                                <ChevronUp className="w-4 h-4" />
+                            </button>
+                            <button
+                                onClick={() => moveGoal(goal.id, 'down')}
+                                className="p-1 text-gray-400 hover:text-gold-500 hover:bg-gold-50 dark:hover:bg-gold-900/20 rounded transition-colors"
+                                title="Mover abajo"
+                            >
+                                <ChevronDown className="w-4 h-4" />
+                            </button>
+                            <div className="w-px h-4 bg-gray-200 dark:bg-gray-700 mx-1" />
                             <button
                                 onClick={() => startEdit(goal)}
                                 className="p-1.5 text-gray-400 hover:text-brand-blue hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors"

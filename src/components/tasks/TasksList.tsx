@@ -2,13 +2,13 @@ import { useState, DragEvent } from 'react'
 import { useTasks } from '../../hooks/useTasks'
 import { useGoals } from '../../hooks/useGoals'
 import { DateInput } from '../ui/DateInput'
-import { Plus, ListTodo, Trash2, Edit2, Check, Calendar, Clock, Bell, Target, List, LayoutGrid, Sun, Moon, Sunset } from 'lucide-react'
+import { Plus, ListTodo, Trash2, Edit2, Check, Calendar, Clock, Bell, Target, List, LayoutGrid, Sun, Moon, Sunset, ChevronUp, ChevronDown } from 'lucide-react'
 
 type ViewMode = 'list' | 'kanban'
 type EstadoTarea = 'pendiente' | 'en_progreso' | 'completada' | 'cancelada'
 
 export function TasksList() {
-    const { tasks, createTask, updateTask, deleteTask, loading } = useTasks()
+    const { tasks, createTask, updateTask, deleteTask, reorderTasks, loading } = useTasks()
     const { goals } = useGoals()
     const [showForm, setShowForm] = useState(false)
     const [editingId, setEditingId] = useState<string | null>(null)
@@ -126,6 +126,30 @@ export function TasksList() {
         cancelada: tasks.filter(t => t.estado === 'cancelada'),
     }
 
+    // Move task up or down within its column
+    const moveTask = async (taskId: string, direction: 'up' | 'down') => {
+        const task = tasks.find(t => t.id === taskId)
+        if (!task) return
+
+        const estado = task.estado
+        const tasksInColumn = tasksByEstado[estado].sort((a, b) => (a.orden || 0) - (b.orden || 0))
+        const currentIndex = tasksInColumn.findIndex(t => t.id === taskId)
+
+        if (direction === 'up' && currentIndex > 0) {
+            const prevTask = tasksInColumn[currentIndex - 1]
+            await reorderTasks([
+                { id: taskId, orden: prevTask.orden || 0 },
+                { id: prevTask.id, orden: task.orden || 0 }
+            ])
+        } else if (direction === 'down' && currentIndex < tasksInColumn.length - 1) {
+            const nextTask = tasksInColumn[currentIndex + 1]
+            await reorderTasks([
+                { id: taskId, orden: nextTask.orden || 0 },
+                { id: nextTask.id, orden: task.orden || 0 }
+            ])
+        }
+    }
+
     const formatTime = (minutes: number) => {
         const hours = Math.floor(minutes / 60)
         const mins = minutes % 60
@@ -192,7 +216,22 @@ export function TasksList() {
                             </div>
                         )}
 
-                        <div className="flex items-center gap-2 mt-3">
+                        <div className="flex items-center gap-1 mt-3">
+                            <button
+                                onClick={() => moveTask(task.id, 'up')}
+                                className="p-1 text-gray-400 hover:text-indigo-500 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 rounded transition-colors"
+                                title="Mover arriba"
+                            >
+                                <ChevronUp className="w-4 h-4" />
+                            </button>
+                            <button
+                                onClick={() => moveTask(task.id, 'down')}
+                                className="p-1 text-gray-400 hover:text-indigo-500 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 rounded transition-colors"
+                                title="Mover abajo"
+                            >
+                                <ChevronDown className="w-4 h-4" />
+                            </button>
+                            <div className="w-px h-4 bg-gray-200 dark:bg-gray-700 mx-1" />
                             <button
                                 onClick={() => startEdit(task)}
                                 className="p-1.5 text-gray-400 hover:text-brand-blue hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors"
