@@ -95,9 +95,12 @@ export function useHabits() {
                 // Remove rewards if un-checking? 
                 // For now, let's only AWARD on completion to avoid complex "negative" logic that might frustrate users.
                 // Or maybe small penalty? Let's just award on POSITIVE action.
-                if (!existing.completado) { // It WAS false, now becoming true
+                if (!existing.completado) { // It WAS false, now becoming true (COMPLETE)
                     await addXp(20)
                     await addCoins(5)
+                } else { // It WAS true, now becoming false (UN-COMPLETE)
+                    await addXp(-20)
+                    await addCoins(-5)
                 }
             }
 

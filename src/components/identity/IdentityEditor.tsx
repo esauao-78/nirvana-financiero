@@ -57,7 +57,7 @@ function Section({ id, title, icon: Icon, children, onSave, saving, isExpanded, 
 }
 
 export function IdentityEditor() {
-    const { profile, updateProfile, refreshProfile } = useAuth()
+    const { profile, updateProfile, retryLoadProfile } = useAuth()
     const { pillars, updatePillar, refresh: refreshPillars } = useProsperity()
     const { items: nonNegotiables, updateItems, refresh: refreshNonNegotiables } = useNonNegotiables()
 
@@ -146,7 +146,7 @@ export function IdentityEditor() {
             alter_ego: alterEgo,
             estado_emocional_ideal: estadoEmocionalIdeal,
         })
-        await refreshProfile()
+        await retryLoadProfile()
         setSaving(false)
     }
 

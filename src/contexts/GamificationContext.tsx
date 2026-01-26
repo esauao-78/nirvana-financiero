@@ -74,15 +74,22 @@ export function GamificationProvider({ children }: { children: ReactNode }) {
         let newLevel = currentLevel
         let levelUp = false
 
-        // Check for Level Up
-        if (newXp >= nextLevelXp) {
-            newXp = newXp - nextLevelXp // Carry over excess XP
-            newLevel = currentLevel + 1
-            levelUp = true
+        // Handle negative XP (undo)
+        if (amount < 0) {
+            // Preventing de-leveling for now to avoid complexity in this iteration
+            // Just clamp to 0 for the current level
+            newXp = Math.max(0, newXp)
+        } else {
+            // Check for Level Up
+            if (newXp >= nextLevelXp) {
+                newXp = newXp - nextLevelXp // Carry over excess XP
+                newLevel = currentLevel + 1
+                levelUp = true
+            }
         }
 
         // Optimistic Update
-        const updates = {
+        const updates: { xp: number; level: number; coins?: number } = {
             xp: newXp,
             level: newLevel
         }
@@ -105,7 +112,8 @@ export function GamificationProvider({ children }: { children: ReactNode }) {
     const addCoins = useCallback(async (amount: number) => {
         if (!profile) return
         const currentCoins = profile.coins || 0
-        await updateProfile({ coins: currentCoins + amount })
+        const newCoins = Math.max(0, currentCoins + amount)
+        await updateProfile({ coins: newCoins })
     }, [profile, updateProfile])
 
     const spendCoins = useCallback(async (amount: number): Promise<boolean> => {
