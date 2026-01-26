@@ -1,11 +1,14 @@
 import { useState } from 'react'
 import { useHabits } from '../../hooks/useHabits'
-import { Plus, CheckSquare, Flame, Trash2, Edit2, Sun, Moon, Sunset, Clock, Heart, Activity, TrendingUp, X } from 'lucide-react'
+import { Plus, CheckSquare, Flame, Trash2, Edit2, Sun, Moon, Sunset, Clock, Heart, Activity, TrendingUp, X, Shield, Skull, Zap } from 'lucide-react'
 
 type HoraPreferida = 'mañana' | 'tarde' | 'noche' | 'cualquiera'
+type HabitType = 'good' | 'bad'
+type Attribute = 'fuerza' | 'sabiduria' | 'carisma' | 'disciplina' | 'salud'
 
 export function HabitTracker() {
     const { habits, createHabit, updateHabit, toggleHabitCompletion, deleteHabit, isHabitCompletedToday, maxStreak, maxRecord, loading } = useHabits()
+    const [activeTab, setActiveTab] = useState<HabitType>('good')
     const [showForm, setShowForm] = useState(false)
     const [editingId, setEditingId] = useState<string | null>(null)
 
@@ -21,8 +24,12 @@ export function HabitTracker() {
     const [horaPreferida, setHoraPreferida] = useState<HoraPreferida>('cualquiera')
     const [vecesPorDia, setVecesPorDia] = useState(1)
 
-    const iconOptions = ['✓', '🏃', '📚', '💧', '🧘', '💪', '🎯', '💤', '🥗', '💊', '🧠', '🎨', '🙏', '📝', '💰', '🌅']
-    const colorOptions = ['#10B981', '#3B82F6', '#F59E0B', '#EF4444', '#8B5CF6', '#EC4899', '#06B6D4', '#84CC16']
+    // New fields
+    const [habitType, setHabitType] = useState<HabitType>('good')
+    const [attribute, setAttribute] = useState<Attribute | null>(null)
+
+    const iconOptions = ['✓', '🏃', '📚', '💧', '🧘', '💪', '🎯', '💤', '🥗', '💊', '🧠', '🎨', '🙏', '📝', '💰', '🌅', '🚫', '🚬', '🎮', '📱', '🍬', '🍺']
+    const colorOptions = ['#10B981', '#3B82F6', '#F59E0B', '#EF4444', '#8B5CF6', '#EC4899', '#06B6D4', '#84CC16', '#64748B', '#111827']
 
     const horasOpciones = [
         { value: 'mañana' as HoraPreferida, label: '🌅 Mañana', icon: <Sun className="w-4 h-4" /> },
@@ -32,6 +39,14 @@ export function HabitTracker() {
     ]
 
     const estadosAnimo = ['Paz', 'Energía', 'Claridad', 'Motivación', 'Gratitud', 'Confianza', 'Alegría', 'Calma', 'Enfoque']
+
+    const attributesList: { id: Attribute; label: string; icon: any; color: string }[] = [
+        { id: 'fuerza', label: 'Fuerza', icon: Activity, color: 'text-red-500' },
+        { id: 'sabiduria', label: 'Sabiduría', icon: Zap, color: 'text-blue-500' }, // Using Zap as placeholder/example
+        { id: 'salud', label: 'Salud', icon: Heart, color: 'text-green-500' },
+        { id: 'disciplina', label: 'Disciplina', icon: Shield, color: 'text-gray-500' },
+        { id: 'carisma', label: 'Carisma', icon: Sun, color: 'text-yellow-500' },
+    ]
 
     const resetForm = () => {
         setNombre('')
@@ -44,6 +59,8 @@ export function HabitTracker() {
         setVecesPorSemana(7)
         setHoraPreferida('cualquiera')
         setVecesPorDia(1)
+        setHabitType(activeTab) // Default to current tab
+        setAttribute(null)
         setShowForm(false)
         setEditingId(null)
     }
@@ -59,6 +76,8 @@ export function HabitTracker() {
         setVecesPorSemana(habit.veces_por_semana || 7)
         setHoraPreferida(habit.hora_preferida || 'cualquiera')
         setVecesPorDia(habit.veces_por_dia || 1)
+        setHabitType(habit.type || 'good')
+        setAttribute(habit.attribute as Attribute || null)
         setEditingId(habit.id)
         setShowForm(true)
     }
@@ -77,6 +96,8 @@ export function HabitTracker() {
             veces_por_semana: vecesPorSemana,
             hora_preferida: horaPreferida,
             veces_por_dia: vecesPorDia,
+            type: habitType,
+            attribute: attribute
         }
 
         if (editingId) {
@@ -88,46 +109,81 @@ export function HabitTracker() {
         resetForm()
     }
 
-    const todayCompletedCount = habits.filter(h => isHabitCompletedToday(h.id)).length
+    const filteredHabits = habits.filter(h => (h.type || 'good') === activeTab)
+    const todayCompletedCount = habits.filter(h => isHabitCompletedToday(h.id) && (h.type || 'good') === 'good').length // Only count good habits for "Completed today" metric? Or separate?
+    // Let's count "Successes" (Good done + Bad avoided)
+    const todaySuccessCount = habits.filter(h => isHabitCompletedToday(h.id)).length
 
     return (
         <div className="p-6">
             <div className="flex items-center justify-between mb-6">
                 <div>
                     <h2 className="text-2xl font-bold dark:text-white flex items-center gap-2">
-                        <CheckSquare className="w-7 h-7 text-green-500" />
-                        Rutina Diaria
+                        {activeTab === 'good' ? (
+                            <CheckSquare className="w-7 h-7 text-green-500" />
+                        ) : (
+                            <Shield className="w-7 h-7 text-red-500" />
+                        )}
+                        {activeTab === 'good' ? 'Rutina Diaria' : 'Modo Sombra (Anti-Hábitos)'}
                     </h2>
                     <p className="text-gray-500 dark:text-gray-400 mt-1">
-                        {todayCompletedCount}/{habits.length} hábitos completados hoy
+                        {todaySuccessCount} victorias hoy
                     </p>
                 </div>
                 <button
-                    onClick={() => setShowForm(true)}
-                    className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-xl font-semibold hover:shadow-lg transition-all"
+                    onClick={() => {
+                        setHabitType(activeTab)
+                        setShowForm(true)
+                    }}
+                    className={`flex items-center gap-2 px-4 py-2 text-white rounded-xl font-semibold hover:shadow-lg transition-all ${activeTab === 'good' ? 'bg-gradient-to-r from-green-500 to-emerald-600' : 'bg-gradient-to-r from-red-600 to-rose-700'
+                        }`}
                 >
                     <Plus className="w-5 h-5" />
-                    Nuevo Hábito
+                    {activeTab === 'good' ? 'Nuevo Hábito' : 'Nuevo Anti-Hábito'}
                 </button>
             </div>
 
-            {/* Stats cards */}
-            <div className="grid grid-cols-2 gap-4 mb-6">
-                <div className="bg-gradient-to-r from-orange-500 to-red-500 p-4 rounded-2xl text-white">
-                    <div className="flex items-center gap-2 mb-1">
-                        <Flame className="w-5 h-5" />
-                        <span className="font-medium">Racha Actual</span>
-                    </div>
-                    <p className="text-3xl font-bold">{maxStreak} días</p>
-                </div>
-                <div className="bg-gradient-to-r from-gold-400 to-gold-500 p-4 rounded-2xl text-white">
-                    <div className="flex items-center gap-2 mb-1">
-                        <span className="text-xl">🏆</span>
-                        <span className="font-medium">Récord Personal</span>
-                    </div>
-                    <p className="text-3xl font-bold">{maxRecord} días</p>
-                </div>
+            {/* Tabs */}
+            <div className="flex bg-gray-100 dark:bg-gray-800 p-1 rounded-xl mb-6 w-fit">
+                <button
+                    onClick={() => setActiveTab('good')}
+                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${activeTab === 'good'
+                            ? 'bg-white dark:bg-gray-700 text-green-600 dark:text-green-400 shadow-sm'
+                            : 'text-gray-500 hover:text-gray-700 dark:text-gray-400'
+                        }`}
+                >
+                    Buenos Hábitos
+                </button>
+                <button
+                    onClick={() => setActiveTab('bad')}
+                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${activeTab === 'bad'
+                            ? 'bg-white dark:bg-gray-700 text-red-500 shadow-sm'
+                            : 'text-gray-500 hover:text-gray-700 dark:text-gray-400'
+                        }`}
+                >
+                    Anti-Hábitos
+                </button>
             </div>
+
+            {/* Stats cards (Only show for good habits mostly? Or maybe separate stats?) */}
+            {activeTab === 'good' && (
+                <div className="grid grid-cols-2 gap-4 mb-6">
+                    <div className="bg-gradient-to-r from-orange-500 to-red-500 p-4 rounded-2xl text-white">
+                        <div className="flex items-center gap-2 mb-1">
+                            <Flame className="w-5 h-5" />
+                            <span className="font-medium">Racha Actual</span>
+                        </div>
+                        <p className="text-3xl font-bold">{maxStreak} días</p>
+                    </div>
+                    <div className="bg-gradient-to-r from-gold-400 to-gold-500 p-4 rounded-2xl text-white">
+                        <div className="flex items-center gap-2 mb-1">
+                            <span className="text-xl">🏆</span>
+                            <span className="font-medium">Récord Personal</span>
+                        </div>
+                        <p className="text-3xl font-bold">{maxRecord} días</p>
+                    </div>
+                </div>
+            )}
 
             {/* Form Modal */}
             {showForm && (
@@ -135,24 +191,68 @@ export function HabitTracker() {
                     <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 w-full max-w-lg my-8 animate-slide-up">
                         <div className="flex items-center justify-between mb-4">
                             <h3 className="text-xl font-bold dark:text-white">
-                                {editingId ? 'Editar Hábito' : 'Nuevo Hábito'}
+                                {editingId ? 'Editar' : 'Nuevo'} {habitType === 'good' ? 'Hábito' : 'Anti-Hábito'}
                             </h3>
                             <button onClick={resetForm} className="p-2 text-gray-400 hover:text-gray-600">
                                 <X className="w-5 h-5" />
                             </button>
                         </div>
 
+                        {/* Type Selector in Form */}
+                        <div className="flex gap-4 mb-4 p-1 bg-gray-50 dark:bg-gray-700/50 rounded-xl">
+                            <label className="flex items-center gap-2 p-3 rounded-lg cursor-pointer hover:bg-white dark:hover:bg-gray-700 flex-1">
+                                <input
+                                    type="radio"
+                                    name="type"
+                                    checked={habitType === 'good'}
+                                    onChange={() => setHabitType('good')}
+                                    className="text-green-500 focus:ring-green-500"
+                                />
+                                <span className="dark:text-white font-medium">Hábito Positivo</span>
+                            </label>
+                            <label className="flex items-center gap-2 p-3 rounded-lg cursor-pointer hover:bg-white dark:hover:bg-gray-700 flex-1">
+                                <input
+                                    type="radio"
+                                    name="type"
+                                    checked={habitType === 'bad'}
+                                    onChange={() => setHabitType('bad')}
+                                    className="text-red-500 focus:ring-red-500"
+                                />
+                                <span className="dark:text-white font-medium">Anti-Hábito</span>
+                            </label>
+                        </div>
+
                         <div className="space-y-4 max-h-[60vh] overflow-y-auto pr-2">
                             {/* Nombre */}
                             <div>
-                                <label className="block text-sm font-medium mb-1 dark:text-gray-300">Nombre del hábito *</label>
+                                <label className="block text-sm font-medium mb-1 dark:text-gray-300">Nombre *</label>
                                 <input
                                     type="text"
                                     value={nombre}
                                     onChange={(e) => setNombre(e.target.value)}
-                                    placeholder="Ej: Meditar 10 minutos"
+                                    placeholder={habitType === 'good' ? "Ej: Meditar 10 minutos" : "Ej: No ver TikTok antes de dormir"}
                                     className="w-full px-4 py-2 border-2 border-gray-200 dark:border-gray-600 rounded-xl bg-gray-50 dark:bg-gray-700 dark:text-white"
                                 />
+                            </div>
+
+                            {/* Attribute Selector */}
+                            <div>
+                                <label className="block text-sm font-medium mb-2 dark:text-gray-300">Atributo Principal</label>
+                                <div className="grid grid-cols-3 gap-2">
+                                    {attributesList.map(attr => (
+                                        <button
+                                            key={attr.id}
+                                            onClick={() => setAttribute(attr.id)}
+                                            className={`flex items-center gap-2 p-2 rounded-lg text-xs font-medium border transition-all ${attribute === attr.id
+                                                    ? 'bg-blue-50 dark:bg-blue-900/20 border-blue-500 text-blue-600 dark:text-blue-400'
+                                                    : 'border-gray-200 dark:border-gray-700 text-gray-500 hover:bg-gray-50'
+                                                }`}
+                                        >
+                                            <attr.icon className={`w-4 h-4 ${attr.color}`} />
+                                            {attr.label}
+                                        </button>
+                                    ))}
+                                </div>
                             </div>
 
                             {/* Descripción */}
@@ -161,115 +261,9 @@ export function HabitTracker() {
                                 <textarea
                                     value={descripcion}
                                     onChange={(e) => setDescripcion(e.target.value)}
-                                    placeholder="Detalles adicionales del hábito..."
+                                    placeholder="Detalles adicionales..."
                                     className="w-full px-4 py-2 border-2 border-gray-200 dark:border-gray-600 rounded-xl bg-gray-50 dark:bg-gray-700 dark:text-white h-20 resize-none"
                                 />
-                            </div>
-
-                            {/* Estado de ánimo que favorece */}
-                            <div>
-                                <label className="block text-sm font-medium mb-2 dark:text-gray-300 flex items-center gap-2">
-                                    <Heart className="w-4 h-4 text-pink-500" />
-                                    ¿Qué estado de ánimo favorece?
-                                </label>
-                                <div className="flex flex-wrap gap-2">
-                                    {estadosAnimo.map(estado => (
-                                        <button
-                                            key={estado}
-                                            onClick={() => setEstadoAnimoFavorece(estado)}
-                                            className={`px-3 py-1 rounded-full text-sm font-medium transition-all ${estadoAnimoFavorece === estado
-                                                    ? 'bg-pink-500 text-white'
-                                                    : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200'
-                                                }`}
-                                        >
-                                            {estado}
-                                        </button>
-                                    ))}
-                                </div>
-                                <input
-                                    type="text"
-                                    value={estadoAnimoFavorece}
-                                    onChange={(e) => setEstadoAnimoFavorece(e.target.value)}
-                                    placeholder="O escribe otro..."
-                                    className="w-full mt-2 px-4 py-2 border-2 border-gray-200 dark:border-gray-600 rounded-xl bg-gray-50 dark:bg-gray-700 dark:text-white text-sm"
-                                />
-                            </div>
-
-                            {/* Beneficio en salud */}
-                            <div>
-                                <label className="block text-sm font-medium mb-1 dark:text-gray-300 flex items-center gap-2">
-                                    <Activity className="w-4 h-4 text-green-500" />
-                                    ¿En salud qué favorece?
-                                </label>
-                                <input
-                                    type="text"
-                                    value={beneficioSalud}
-                                    onChange={(e) => setBeneficioSalud(e.target.value)}
-                                    placeholder="Ej: Reduce estrés, mejora sueño, fortalece corazón..."
-                                    className="w-full px-4 py-2 border-2 border-gray-200 dark:border-gray-600 rounded-xl bg-gray-50 dark:bg-gray-700 dark:text-white"
-                                />
-                            </div>
-
-                            {/* Beneficio en productividad */}
-                            <div>
-                                <label className="block text-sm font-medium mb-1 dark:text-gray-300 flex items-center gap-2">
-                                    <TrendingUp className="w-4 h-4 text-blue-500" />
-                                    ¿En productividad qué favorece?
-                                </label>
-                                <input
-                                    type="text"
-                                    value={beneficioProductividad}
-                                    onChange={(e) => setBeneficioProductividad(e.target.value)}
-                                    placeholder="Ej: Mayor enfoque, más energía, mejor toma de decisiones..."
-                                    className="w-full px-4 py-2 border-2 border-gray-200 dark:border-gray-600 rounded-xl bg-gray-50 dark:bg-gray-700 dark:text-white"
-                                />
-                            </div>
-
-                            {/* Frecuencia semanal y diaria */}
-                            <div className="grid grid-cols-2 gap-4">
-                                <div>
-                                    <label className="block text-sm font-medium mb-1 dark:text-gray-300">Veces por semana</label>
-                                    <select
-                                        value={vecesPorSemana}
-                                        onChange={(e) => setVecesPorSemana(parseInt(e.target.value))}
-                                        className="w-full px-4 py-2 border-2 border-gray-200 dark:border-gray-600 rounded-xl bg-gray-50 dark:bg-gray-700 dark:text-white"
-                                    >
-                                        {[1, 2, 3, 4, 5, 6, 7].map(n => (
-                                            <option key={n} value={n}>{n} {n === 1 ? 'vez' : 'veces'}</option>
-                                        ))}
-                                    </select>
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium mb-1 dark:text-gray-300">Veces por día</label>
-                                    <select
-                                        value={vecesPorDia}
-                                        onChange={(e) => setVecesPorDia(parseInt(e.target.value))}
-                                        className="w-full px-4 py-2 border-2 border-gray-200 dark:border-gray-600 rounded-xl bg-gray-50 dark:bg-gray-700 dark:text-white"
-                                    >
-                                        {[1, 2, 3, 4, 5].map(n => (
-                                            <option key={n} value={n}>{n} {n === 1 ? 'vez' : 'veces'}</option>
-                                        ))}
-                                    </select>
-                                </div>
-                            </div>
-
-                            {/* Hora preferida */}
-                            <div>
-                                <label className="block text-sm font-medium mb-2 dark:text-gray-300">Hora del día preferida</label>
-                                <div className="grid grid-cols-4 gap-2">
-                                    {horasOpciones.map(h => (
-                                        <button
-                                            key={h.value}
-                                            onClick={() => setHoraPreferida(h.value)}
-                                            className={`p-2 rounded-xl text-sm font-medium transition-all ${horaPreferida === h.value
-                                                    ? 'bg-green-500 text-white'
-                                                    : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200'
-                                                }`}
-                                        >
-                                            {h.label.split(' ')[0]}
-                                        </button>
-                                    ))}
-                                </div>
                             </div>
 
                             {/* Icono */}
@@ -306,6 +300,37 @@ export function HabitTracker() {
                                     ))}
                                 </div>
                             </div>
+
+                            {/* Frecuencia (Simplified for now, keeps existing logic) */}
+                            {habitType === 'good' && (
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label className="block text-sm font-medium mb-1 dark:text-gray-300">Veces por semana</label>
+                                        <select
+                                            value={vecesPorSemana}
+                                            onChange={(e) => setVecesPorSemana(parseInt(e.target.value))}
+                                            className="w-full px-4 py-2 border-2 border-gray-200 dark:border-gray-600 rounded-xl bg-gray-50 dark:bg-gray-700 dark:text-white"
+                                        >
+                                            {[1, 2, 3, 4, 5, 6, 7].map(n => (
+                                                <option key={n} value={n}>{n} {n === 1 ? 'vez' : 'veces'}</option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium mb-1 dark:text-gray-300">Veces por día</label>
+                                        <select
+                                            value={vecesPorDia}
+                                            onChange={(e) => setVecesPorDia(parseInt(e.target.value))}
+                                            className="w-full px-4 py-2 border-2 border-gray-200 dark:border-gray-600 rounded-xl bg-gray-50 dark:bg-gray-700 dark:text-white"
+                                        >
+                                            {[1, 2, 3, 4, 5].map(n => (
+                                                <option key={n} value={n}>{n} {n === 1 ? 'vez' : 'veces'}</option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                </div>
+                            )}
+
                         </div>
 
                         <div className="flex gap-3 mt-6">
@@ -317,7 +342,8 @@ export function HabitTracker() {
                             </button>
                             <button
                                 onClick={handleSubmit}
-                                className="flex-1 py-2 bg-green-500 text-white rounded-xl font-medium"
+                                className={`flex-1 py-2 text-white rounded-xl font-medium ${habitType === 'good' ? 'bg-green-500' : 'bg-red-500'
+                                    }`}
                             >
                                 {editingId ? 'Guardar' : 'Crear'}
                             </button>
@@ -328,25 +354,36 @@ export function HabitTracker() {
 
             {/* Habits List */}
             <div className="space-y-3">
-                {habits.map(habit => {
+                {filteredHabits.map(habit => {
                     const completed = isHabitCompletedToday(habit.id)
                     const horaInfo = horasOpciones.find(h => h.value === habit.hora_preferida)
+                    const isGood = (habit.type || 'good') === 'good'
+
                     return (
                         <div
                             key={habit.id}
-                            className={`bg-white dark:bg-gray-800 p-4 rounded-2xl shadow-lg transition-all ${completed ? 'ring-2 ring-green-500 bg-green-50 dark:bg-green-900/20' : ''
-                                }`}
+                            className={`
+                                p-4 rounded-2xl shadow-lg transition-all border
+                                ${isGood
+                                    ? 'bg-white dark:bg-gray-800 border-gray-100 dark:border-gray-700'
+                                    : 'bg-red-50 dark:bg-red-900/10 border-red-100 dark:border-red-900/30'
+                                }
+                                ${completed ? (isGood ? 'ring-2 ring-green-500 bg-green-50 dark:bg-green-900/20' : 'ring-2 ring-red-500 bg-red-100 dark:bg-red-900/40') : ''}
+                            `}
                         >
                             <div className="flex items-center gap-4">
                                 <button
                                     onClick={() => toggleHabitCompletion(habit.id)}
-                                    className={`w-12 h-12 rounded-xl flex items-center justify-center text-2xl transition-all ${completed
-                                        ? 'bg-green-500 text-white celebrate'
-                                        : 'bg-gray-100 dark:bg-gray-700'
-                                        }`}
-                                    style={{ backgroundColor: completed ? habit.color : undefined }}
+                                    className={`
+                                        w-12 h-12 rounded-xl flex items-center justify-center text-2xl transition-all
+                                        ${completed
+                                            ? (isGood ? 'bg-green-500 text-white celebrate' : 'bg-red-500 text-white celebrate')
+                                            : 'bg-gray-100 dark:bg-gray-700'
+                                        }
+                                    `}
+                                    style={{ backgroundColor: completed ? (isGood ? habit.color : '#EF4444') : undefined }}
                                 >
-                                    {completed ? '✓' : habit.icono}
+                                    {completed ? (isGood ? '✓' : '🛡️') : habit.icono}
                                 </button>
 
                                 <div className="flex-1">
@@ -354,29 +391,23 @@ export function HabitTracker() {
                                         <h4 className={`font-semibold dark:text-white ${completed ? 'line-through opacity-75' : ''}`}>
                                             {habit.nombre}
                                         </h4>
-                                        {horaInfo && habit.hora_preferida !== 'cualquiera' && (
-                                            <span className="text-xs text-gray-500 dark:text-gray-400">{horaInfo.label}</span>
+                                        {habit.attribute && (
+                                            <span className="text-[10px] px-2 py-0.5 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 capitalize">
+                                                {habit.attribute}
+                                            </span>
                                         )}
                                     </div>
                                     {habit.descripcion && (
                                         <p className="text-sm text-gray-500 dark:text-gray-400">{habit.descripcion}</p>
                                     )}
+
+                                    {/* Stats specific to item */}
                                     <div className="flex flex-wrap items-center gap-2 mt-1">
+                                        {/* For Good habits: Streak. For Bad habits: Days Clean. */}
                                         {habit.racha_actual > 0 && (
-                                            <span className="flex items-center gap-1 text-xs text-orange-500 font-medium">
+                                            <span className={`flex items-center gap-1 text-xs font-medium ${isGood ? 'text-orange-500' : 'text-red-500'}`}>
                                                 <Flame className="w-3 h-3" />
-                                                {habit.racha_actual} días
-                                            </span>
-                                        )}
-                                        {habit.estado_animo_favorece && (
-                                            <span className="flex items-center gap-1 text-xs text-pink-500">
-                                                <Heart className="w-3 h-3" />
-                                                {habit.estado_animo_favorece}
-                                            </span>
-                                        )}
-                                        {habit.veces_por_semana < 7 && (
-                                            <span className="text-xs text-gray-400">
-                                                {habit.veces_por_semana}x/sem
+                                                {habit.racha_actual} días {isGood ? 'seguidos' : 'limpio'}
                                             </span>
                                         )}
                                     </div>
@@ -401,15 +432,24 @@ export function HabitTracker() {
                     )
                 })}
 
-                {habits.length === 0 && !loading && (
+                {filteredHabits.length === 0 && !loading && (
                     <div className="text-center py-12">
-                        <CheckSquare className="w-16 h-16 mx-auto text-gray-300 dark:text-gray-600 mb-4" />
-                        <p className="text-gray-500 dark:text-gray-400">No tienes hábitos configurados</p>
+                        {activeTab === 'good' ? (
+                            <CheckSquare className="w-16 h-16 mx-auto text-gray-300 dark:text-gray-600 mb-4" />
+                        ) : (
+                            <Skull className="w-16 h-16 mx-auto text-gray-300 dark:text-gray-600 mb-4" />
+                        )}
+                        <p className="text-gray-500 dark:text-gray-400">
+                            {activeTab === 'good' ? 'No tienes hábitos configurados' : 'No tienes anti-hábitos configurados'}
+                        </p>
                         <button
-                            onClick={() => setShowForm(true)}
-                            className="mt-4 text-green-500 font-medium hover:underline"
+                            onClick={() => {
+                                setHabitType(activeTab)
+                                setShowForm(true)
+                            }}
+                            className={`mt-4 font-medium hover:underline ${activeTab === 'good' ? 'text-green-500' : 'text-red-500'}`}
                         >
-                            Crear tu primer hábito
+                            {activeTab === 'good' ? 'Crear tu primer hábito' : 'Identificar un enemigo'}
                         </button>
                     </div>
                 )}

@@ -22,6 +22,10 @@ export interface Database {
                     ecualizador_estados: Record<string, number>
                     rutina_millonaria: Record<string, boolean>
                     pilares_prosperidad: Record<string, number> | null
+                    xp: number
+                    level: number
+                    coins: number
+                    stats: Record<string, number>
                     created_at: string
                     updated_at: string
                 }
@@ -37,6 +41,10 @@ export interface Database {
                     ecualizador_estados?: Record<string, number>
                     rutina_millonaria?: Record<string, boolean>
                     pilares_prosperidad?: Record<string, number> | null
+                    xp?: number
+                    level?: number
+                    coins?: number
+                    stats?: Record<string, number>
                     created_at?: string
                     updated_at?: string
                 }
@@ -52,6 +60,10 @@ export interface Database {
                     ecualizador_estados?: Record<string, number>
                     rutina_millonaria?: Record<string, boolean>
                     pilares_prosperidad?: Record<string, number> | null
+                    xp?: number
+                    level?: number
+                    coins?: number
+                    stats?: Record<string, number>
                     created_at?: string
                     updated_at?: string
                 }
@@ -180,6 +192,8 @@ export interface Database {
                     veces_por_semana: number
                     hora_preferida: 'mañana' | 'tarde' | 'noche' | 'cualquiera'
                     veces_por_dia: number
+                    type: 'good' | 'bad'
+                    attribute: 'fuerza' | 'sabiduria' | 'carisma' | 'disciplina' | 'salud' | null
                     created_at: string
                 }
                 Insert: {
@@ -200,6 +214,8 @@ export interface Database {
                     veces_por_semana?: number
                     hora_preferida?: 'mañana' | 'tarde' | 'noche' | 'cualquiera'
                     veces_por_dia?: number
+                    type?: 'good' | 'bad'
+                    attribute?: 'fuerza' | 'sabiduria' | 'carisma' | 'disciplina' | 'salud' | null
                     created_at?: string
                 }
                 Update: {
@@ -220,6 +236,37 @@ export interface Database {
                     veces_por_semana?: number
                     hora_preferida?: 'mañana' | 'tarde' | 'noche' | 'cualquiera'
                     veces_por_dia?: number
+                    type?: 'good' | 'bad'
+                    attribute?: 'fuerza' | 'sabiduria' | 'carisma' | 'disciplina' | 'salud' | null
+                    created_at?: string
+                }
+            }
+            rewards: {
+                Row: {
+                    id: string
+                    user_id: string
+                    title: string
+                    cost: number
+                    icon: string
+                    description: string | null
+                    created_at: string
+                }
+                Insert: {
+                    id?: string
+                    user_id: string
+                    title: string
+                    cost?: number
+                    icon?: string
+                    description?: string | null
+                    created_at?: string
+                }
+                Update: {
+                    id?: string
+                    user_id?: string
+                    title?: string
+                    cost?: number
+                    icon?: string
+                    description?: string | null
                     created_at?: string
                 }
             }

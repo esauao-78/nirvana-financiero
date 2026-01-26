@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../contexts/AuthContext'
+import { useGamification } from '../contexts/GamificationContext'
 import type { Database } from '../types/database'
 
 type Habit = Database['public']['Tables']['habits']['Row']
@@ -9,6 +10,7 @@ type HabitCompletion = Database['public']['Tables']['habit_completions']['Row']
 
 export function useHabits() {
     const { user } = useAuth()
+    const { addXp, addCoins } = useGamification()
     const [habits, setHabits] = useState<Habit[]>([])
     const [completions, setCompletions] = useState<HabitCompletion[]>([])
     const [loading, setLoading] = useState(true)
@@ -77,6 +79,7 @@ export function useHabits() {
 
         const today = new Date().toISOString().split('T')[0]
         const existing = completions.find(c => c.habit_id === habitId)
+        const habit = habits.find(h => h.id === habitId)
 
         if (existing) {
             // Toggle existing
@@ -88,6 +91,14 @@ export function useHabits() {
             if (!error) {
                 await fetchTodayCompletions()
                 await updateStreaks(habitId, !existing.completado)
+
+                // Remove rewards if un-checking? 
+                // For now, let's only AWARD on completion to avoid complex "negative" logic that might frustrate users.
+                // Or maybe small penalty? Let's just award on POSITIVE action.
+                if (!existing.completado) { // It WAS false, now becoming true
+                    await addXp(20)
+                    await addCoins(5)
+                }
             }
 
             return { error: error ? new Error(error.message) : null }
@@ -105,6 +116,8 @@ export function useHabits() {
             if (!error) {
                 await fetchTodayCompletions()
                 await updateStreaks(habitId, true)
+                await addXp(20)
+                await addCoins(5)
             }
 
             return { error: error ? new Error(error.message) : null }

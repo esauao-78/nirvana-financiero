@@ -17,6 +17,7 @@ import { CoachModal } from './components/coach/CoachModal'
 import { TasksList } from './components/tasks/TasksList'
 import { PomodoroTimer } from './components/pomodoro/PomodoroTimer'
 import { IdentityEditor } from './components/identity/IdentityEditor'
+import { RewardsShop } from './components/gamification/RewardsShop'
 
 function AppContent() {
     const { profile, appState, errorMessage, retryLoadProfile, signOut } = useAuth()
@@ -138,6 +139,7 @@ function AppContent() {
                     {currentView === 'estadisticas' && <StatsDashboard />}
                     {currentView === 'identidad' && <IdentityEditor />}
                     {currentView === 'settings' && <SettingsView />}
+                    {currentView === 'tienda' && <RewardsShop />}
                 </main>
             </div>
 
@@ -161,11 +163,15 @@ function AppContent() {
     )
 }
 
+import { GamificationProvider } from './contexts/GamificationContext'
+
 function App() {
     return (
         <ThemeProvider>
             <AuthProvider>
-                <AppContent />
+                <GamificationProvider>
+                    <AppContent />
+                </GamificationProvider>
             </AuthProvider>
         </ThemeProvider>
     )

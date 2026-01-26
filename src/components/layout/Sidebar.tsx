@@ -9,10 +9,14 @@ import {
     Heart,
     ListTodo,
     Timer,
-    User
+    User,
+    ShoppingBag,
+    Trophy
 } from 'lucide-react'
+import { useAuth } from '../../contexts/AuthContext'
+import { useGamification } from '../../contexts/GamificationContext'
 
-export type ViewType = 'dashboard' | 'metas' | 'tareas' | 'rutina' | 'pomodoro' | 'finanzas' | 'diario' | 'biblioteca' | 'estadisticas' | 'identidad' | 'settings'
+export type ViewType = 'dashboard' | 'metas' | 'tareas' | 'rutina' | 'pomodoro' | 'finanzas' | 'diario' | 'biblioteca' | 'estadisticas' | 'identidad' | 'settings' | 'tienda'
 
 interface SidebarProps {
     currentView: ViewType
@@ -31,11 +35,15 @@ const menuItems: Array<{ id: ViewType; icon: React.ElementType; label: string; c
     { id: 'finanzas', icon: DollarSign, label: 'Finanzas', color: 'text-emerald-500' },
     { id: 'biblioteca', icon: BookOpen, label: 'Biblioteca', color: 'text-purple-500' },
     { id: 'estadisticas', icon: TrendingUp, label: 'Estadísticas', color: 'text-orange-500' },
+    { id: 'tienda', icon: ShoppingBag, label: 'Tienda de Recompensas', color: 'text-teal-500' },
     { id: 'identidad', icon: User, label: 'Mi Identidad', color: 'text-gold-500' },
     { id: 'settings', icon: Settings, label: 'Configuración', color: 'text-gray-500' },
 ]
 
 export function Sidebar({ currentView, onNavigate, isOpen, onClose }: SidebarProps) {
+    const { profile } = useAuth()
+    const { levelProgress } = useGamification()
+
     const handleNavigate = (view: ViewType) => {
         onNavigate(view)
         onClose()
@@ -56,10 +64,40 @@ export function Sidebar({ currentView, onNavigate, isOpen, onClose }: SidebarPro
                 className={`
           fixed lg:sticky top-[73px] h-[calc(100vh-73px)] w-64 
           bg-white dark:bg-gray-800 border-r dark:border-gray-700 
-          transition-transform duration-300 z-40
+          transition-transform duration-300 z-40 overflow-y-auto
           ${isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
         `}
             >
+                {/* Character Stats Card */}
+                {profile && (
+                    <div className="p-4 border-b border-gray-100 dark:border-gray-700 mb-2">
+                        <div className="flex items-center gap-3 mb-2">
+                            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-gold-400 to-amber-600 flex items-center justify-center text-white font-bold shadow-sm">
+                                {profile.level || 1}
+                            </div>
+                            <div>
+                                <p className="text-sm font-semibold text-gray-800 dark:text-gray-200">
+                                    Nivel {profile.level || 1}
+                                </p>
+                                <div className="flex items-center gap-1 text-xs text-yellow-600 dark:text-yellow-400 font-medium">
+                                    <Trophy className="w-3 h-3" />
+                                    {profile.coins || 0} monedas
+                                </div>
+                            </div>
+                        </div>
+                        {/* XP Bar */}
+                        <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                            <div
+                                className="bg-brand-blue h-2 rounded-full transition-all duration-300"
+                                style={{ width: `${Math.min(100, Math.max(0, levelProgress))}%` }}
+                            />
+                        </div>
+                        <p className="text-right text-[10px] text-gray-400 mt-1">
+                            {profile.xp || 0} XP
+                        </p>
+                    </div>
+                )}
+
                 <nav className="p-4 space-y-1">
                     {menuItems.map(item => (
                         <button

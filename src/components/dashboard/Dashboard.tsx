@@ -4,6 +4,7 @@ import { useHabits } from '../../hooks/useHabits'
 import { useTasks } from '../../hooks/useTasks'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../contexts/AuthContext'
+import { CharacterStats } from '../gamification/CharacterStats'
 import {
     BarChart3, Target, Zap, Flame, AlertTriangle, CheckSquare, Clock,
     Heart, Sparkles, Brain, Sun, Shield, TrendingUp, Smile, Star,
@@ -47,7 +48,7 @@ interface DashboardProps {
 }
 
 export function Dashboard({ onEmergency }: DashboardProps) {
-    const { user, profile, updateProfile, refreshProfile } = useAuth()
+    const { user, profile, updateProfile, retryLoadProfile } = useAuth()
     const { goals, activeGoals, completedGoals } = useGoals()
     const { habits, todayCompleted, overallStreak } = useHabits()
     const { pendingTasks, inProgressTasks } = useTasks()
@@ -176,7 +177,7 @@ export function Dashboard({ onEmergency }: DashboardProps) {
             nombre,
             palabra_del_año: palabraDelAno
         })
-        await refreshProfile()
+        await retryLoadProfile()
         setEditingIdentity(false)
         setSaving(false)
     }
@@ -296,39 +297,44 @@ export function Dashboard({ onEmergency }: DashboardProps) {
                 </div>
             </div>
 
-            {/* Ecualizador de Estados - Now as checkboxes */}
-            <div className="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-lg mb-6">
-                <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-lg font-bold dark:text-white flex items-center gap-2">
-                        <Star className="w-5 h-5 text-gold-500" />
-                        Ecualizador de Estados
-                    </h3>
-                    <span className="text-sm font-medium text-gold-500">
-                        {completedEstados}/{ESTADOS_ECUALIZADOR.length}
-                    </span>
-                </div>
-                <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
-                    Selecciona los estados que tienes activos hoy
-                </p>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                {/* Character Stats */}
+                <CharacterStats />
 
-                <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
-                    {ESTADOS_ECUALIZADOR.map(estado => {
-                        const IconComponent = estado.icon
-                        const isActive = ecualizadorEstados[estado.id]
-                        return (
-                            <button
-                                key={estado.id}
-                                onClick={() => toggleEstado(estado.id)}
-                                className={`p-3 rounded-xl text-center transition-all ${isActive
-                                    ? 'bg-gradient-to-r from-gold-400 to-gold-600 text-white shadow-lg'
-                                    : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
-                                    }`}
-                            >
-                                <IconComponent className={`w-5 h-5 mx-auto mb-1 ${isActive ? 'text-white' : ''}`} />
-                                <span className="text-xs font-medium">{estado.label}</span>
-                            </button>
-                        )
-                    })}
+                {/* Ecualizador de Estados - Now as checkboxes */}
+                <div className="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-lg">
+                    <div className="flex items-center justify-between mb-4">
+                        <h3 className="text-lg font-bold dark:text-white flex items-center gap-2">
+                            <Star className="w-5 h-5 text-gold-500" />
+                            Ecualizador de Estados
+                        </h3>
+                        <span className="text-sm font-medium text-gold-500">
+                            {completedEstados}/{ESTADOS_ECUALIZADOR.length}
+                        </span>
+                    </div>
+                    <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
+                        Selecciona los estados que tienes activos hoy
+                    </p>
+
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                        {ESTADOS_ECUALIZADOR.map(estado => {
+                            const IconComponent = estado.icon
+                            const isActive = ecualizadorEstados[estado.id]
+                            return (
+                                <button
+                                    key={estado.id}
+                                    onClick={() => toggleEstado(estado.id)}
+                                    className={`p-3 rounded-xl text-center transition-all ${isActive
+                                        ? 'bg-gradient-to-r from-gold-400 to-gold-600 text-white shadow-lg'
+                                        : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
+                                        }`}
+                                >
+                                    <IconComponent className={`w-5 h-5 mx-auto mb-1 ${isActive ? 'text-white' : ''}`} />
+                                    <span className="text-xs font-medium">{estado.label}</span>
+                                </button>
+                            )
+                        })}
+                    </div>
                 </div>
             </div>
 
