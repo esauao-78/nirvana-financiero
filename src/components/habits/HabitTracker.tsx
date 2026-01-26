@@ -277,9 +277,10 @@ export function HabitTracker() {
             {/* Form Modal */}
             {
                 showForm && (
-                    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 overflow-y-auto">
-                        <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 w-full max-w-lg my-8 animate-slide-up">
-                            <div className="flex items-center justify-between mb-4">
+                    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+                        <div className="bg-white dark:bg-gray-800 rounded-2xl w-full max-w-lg my-8 animate-slide-up flex flex-col max-h-[90vh]">
+                            {/* Header */}
+                            <div className="flex items-center justify-between p-6 pb-2">
                                 <h3 className="text-xl font-bold dark:text-white">
                                     {editingId ? 'Editar' : 'Nuevo'} {habitType === 'good' ? 'Hábito' : 'Anti-Hábito'}
                                 </h3>
@@ -288,31 +289,32 @@ export function HabitTracker() {
                                 </button>
                             </div>
 
-                            {/* Type Selector in Form */}
-                            <div className="flex gap-4 mb-4 p-1 bg-gray-50 dark:bg-gray-700/50 rounded-xl">
-                                <label className="flex items-center gap-2 p-3 rounded-lg cursor-pointer hover:bg-white dark:hover:bg-gray-700 flex-1">
-                                    <input
-                                        type="radio"
-                                        name="type"
-                                        checked={habitType === 'good'}
-                                        onChange={() => setHabitType('good')}
-                                        className="text-green-500 focus:ring-green-500"
-                                    />
-                                    <span className="dark:text-white font-medium">Hábito Positivo</span>
-                                </label>
-                                <label className="flex items-center gap-2 p-3 rounded-lg cursor-pointer hover:bg-white dark:hover:bg-gray-700 flex-1">
-                                    <input
-                                        type="radio"
-                                        name="type"
-                                        checked={habitType === 'bad'}
-                                        onChange={() => setHabitType('bad')}
-                                        className="text-red-500 focus:ring-red-500"
-                                    />
-                                    <span className="dark:text-white font-medium">Anti-Hábito</span>
-                                </label>
-                            </div>
+                            {/* Scrollable Content */}
+                            <div className="flex-1 overflow-y-auto p-6 pt-2 space-y-4">
+                                {/* Type Selector in Form */}
+                                <div className="flex gap-4 mb-4 p-1 bg-gray-50 dark:bg-gray-700/50 rounded-xl">
+                                    <label className="flex items-center gap-2 p-3 rounded-lg cursor-pointer hover:bg-white dark:hover:bg-gray-700 flex-1">
+                                        <input
+                                            type="radio"
+                                            name="type"
+                                            checked={habitType === 'good'}
+                                            onChange={() => setHabitType('good')}
+                                            className="text-green-500 focus:ring-green-500"
+                                        />
+                                        <span className="dark:text-white font-medium">Hábito Positivo</span>
+                                    </label>
+                                    <label className="flex items-center gap-2 p-3 rounded-lg cursor-pointer hover:bg-white dark:hover:bg-gray-700 flex-1">
+                                        <input
+                                            type="radio"
+                                            name="type"
+                                            checked={habitType === 'bad'}
+                                            onChange={() => setHabitType('bad')}
+                                            className="text-red-500 focus:ring-red-500"
+                                        />
+                                        <span className="dark:text-white font-medium">Anti-Hábito</span>
+                                    </label>
+                                </div>
 
-                            <div className="space-y-4 max-h-[60vh] overflow-y-auto pr-2">
                                 {/* Nombre */}
                                 <div>
                                     <label className="block text-sm font-medium mb-1 dark:text-gray-300">Nombre *</label>
@@ -345,160 +347,160 @@ export function HabitTracker() {
                                     </div>
                                 </div>
 
-                            </div>
+                                {/* Micro-Habits Section (Only for Good Habits) */}
+                                {habitType === 'good' && (
+                                    <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-xl space-y-4 border border-blue-100 dark:border-blue-800">
+                                        <h4 className="font-semibold text-blue-800 dark:text-blue-300 flex items-center gap-2">
+                                            <Zap className="w-4 h-4" />
+                                            Diseño de Micro-Hábito
+                                        </h4>
 
-                            {/* Micro-Habits Section (Only for Good Habits) */}
-                            {habitType === 'good' && (
-                                <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-xl space-y-4 border border-blue-100 dark:border-blue-800">
-                                    <h4 className="font-semibold text-blue-800 dark:text-blue-300 flex items-center gap-2">
-                                        <Zap className="w-4 h-4" />
-                                        Diseño de Micro-Hábito
-                                    </h4>
+                                        {/* Micro Step */}
+                                        <div>
+                                            <label className="block text-sm font-medium mb-1 dark:text-gray-300">
+                                                Micro-Paso (&lt; 2 min)
+                                            </label>
+                                            <input
+                                                type="text"
+                                                value={microStep}
+                                                onChange={(e) => setMicroStep(e.target.value)}
+                                                placeholder="Ej: Ponerse las zapatillas"
+                                                className="w-full px-4 py-2 border-2 border-blue-200 dark:border-blue-800 rounded-xl bg-white dark:bg-gray-800 dark:text-white"
+                                            />
+                                            <p className="text-xs text-blue-600 dark:text-blue-400 mt-1">
+                                                La acción más pequeña e irreductible para empezar.
+                                            </p>
+                                        </div>
 
-                                    {/* Micro Step */}
-                                    <div>
-                                        <label className="block text-sm font-medium mb-1 dark:text-gray-300">
-                                            Micro-Paso (&lt; 2 min)
-                                        </label>
-                                        <input
-                                            type="text"
-                                            value={microStep}
-                                            onChange={(e) => setMicroStep(e.target.value)}
-                                            placeholder="Ej: Ponerse las zapatillas"
-                                            className="w-full px-4 py-2 border-2 border-blue-200 dark:border-blue-800 rounded-xl bg-white dark:bg-gray-800 dark:text-white"
-                                        />
-                                        <p className="text-xs text-blue-600 dark:text-blue-400 mt-1">
-                                            La acción más pequeña e irreductible para empezar.
-                                        </p>
+                                        {/* Anchor */}
+                                        <div>
+                                            <label className="block text-sm font-medium mb-1 dark:text-gray-300">
+                                                Ancla (Hábito existente)
+                                            </label>
+                                            <input
+                                                type="text"
+                                                value={anchor}
+                                                onChange={(e) => setAnchor(e.target.value)}
+                                                placeholder="Ej: Después de cepillarme los dientes"
+                                                className="w-full px-4 py-2 border-2 border-blue-200 dark:border-blue-800 rounded-xl bg-white dark:bg-gray-800 dark:text-white"
+                                            />
+                                            <p className="text-xs text-blue-600 dark:text-blue-400 mt-1">
+                                                "Después de [ANCLA], haré [MICRO-PASO]".
+                                            </p>
+                                        </div>
+
+                                        {/* Identity Affirmation */}
+                                        <div>
+                                            <label className="block text-sm font-medium mb-1 dark:text-gray-300">
+                                                Afirmación de Identidad
+                                            </label>
+                                            <input
+                                                type="text"
+                                                value={identityAffirmation}
+                                                onChange={(e) => setIdentityAffirmation(e.target.value)}
+                                                placeholder="Ej: Soy una persona atlética"
+                                                className="w-full px-4 py-2 border-2 border-blue-200 dark:border-blue-800 rounded-xl bg-white dark:bg-gray-800 dark:text-white"
+                                            />
+                                            <p className="text-xs text-blue-600 dark:text-blue-400 mt-1">
+                                                ¿Quién es el tipo de persona que hace esto?
+                                            </p>
+                                        </div>
                                     </div>
+                                )}
 
-                                    {/* Anchor */}
-                                    <div>
-                                        <label className="block text-sm font-medium mb-1 dark:text-gray-300">
-                                            Ancla (Hábito existente)
-                                        </label>
-                                        <input
-                                            type="text"
-                                            value={anchor}
-                                            onChange={(e) => setAnchor(e.target.value)}
-                                            placeholder="Ej: Después de cepillarme los dientes"
-                                            className="w-full px-4 py-2 border-2 border-blue-200 dark:border-blue-800 rounded-xl bg-white dark:bg-gray-800 dark:text-white"
-                                        />
-                                        <p className="text-xs text-blue-600 dark:text-blue-400 mt-1">
-                                            "Después de [ANCLA], haré [MICRO-PASO]".
-                                        </p>
-                                    </div>
+                                {/* Descripción */}
+                                <div>
+                                    <label className="block text-sm font-medium mb-1 dark:text-gray-300">Descripción</label>
+                                    <textarea
+                                        value={descripcion}
+                                        onChange={(e) => setDescripcion(e.target.value)}
+                                        placeholder="Detalles adicionales..."
+                                        className="w-full px-4 py-2 border-2 border-gray-200 dark:border-gray-600 rounded-xl bg-gray-50 dark:bg-gray-700 dark:text-white h-20 resize-none"
+                                    />
+                                </div>
 
-                                    {/* Identity Affirmation */}
-                                    <div>
-                                        <label className="block text-sm font-medium mb-1 dark:text-gray-300">
-                                            Afirmación de Identidad
-                                        </label>
-                                        <input
-                                            type="text"
-                                            value={identityAffirmation}
-                                            onChange={(e) => setIdentityAffirmation(e.target.value)}
-                                            placeholder="Ej: Soy una persona atlética"
-                                            className="w-full px-4 py-2 border-2 border-blue-200 dark:border-blue-800 rounded-xl bg-white dark:bg-gray-800 dark:text-white"
-                                        />
-                                        <p className="text-xs text-blue-600 dark:text-blue-400 mt-1">
-                                            ¿Quién es el tipo de persona que hace esto?
-                                        </p>
+                                {/* Icono */}
+                                <div>
+                                    <label className="block text-sm font-medium mb-2 dark:text-gray-300">Icono</label>
+                                    <div className="flex flex-wrap gap-2">
+                                        {iconOptions.map(icon => (
+                                            <button
+                                                key={icon}
+                                                onClick={() => setIcono(icon)}
+                                                className={`w-10 h-10 rounded-lg text-xl flex items-center justify-center transition-all ${icono === icon
+                                                    ? 'bg-brand-blue text-white scale-110'
+                                                    : 'bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600'
+                                                    } `}
+                                            >
+                                                {icon}
+                                            </button>
+                                        ))}
                                     </div>
                                 </div>
-                            )}
 
-                            {/* Descripción */}
-                            <div>
-                                <label className="block text-sm font-medium mb-1 dark:text-gray-300">Descripción</label>
-                                <textarea
-                                    value={descripcion}
-                                    onChange={(e) => setDescripcion(e.target.value)}
-                                    placeholder="Detalles adicionales..."
-                                    className="w-full px-4 py-2 border-2 border-gray-200 dark:border-gray-600 rounded-xl bg-gray-50 dark:bg-gray-700 dark:text-white h-20 resize-none"
-                                />
-                            </div>
-
-                            {/* Icono */}
-                            <div>
-                                <label className="block text-sm font-medium mb-2 dark:text-gray-300">Icono</label>
-                                <div className="flex flex-wrap gap-2">
-                                    {iconOptions.map(icon => (
-                                        <button
-                                            key={icon}
-                                            onClick={() => setIcono(icon)}
-                                            className={`w-10 h-10 rounded-lg text-xl flex items-center justify-center transition-all ${icono === icon
-                                                ? 'bg-brand-blue text-white scale-110'
-                                                : 'bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600'
-                                                } `}
-                                        >
-                                            {icon}
-                                        </button>
-                                    ))}
-                                </div>
-                            </div>
-
-                            {/* Color */}
-                            <div>
-                                <label className="block text-sm font-medium mb-2 dark:text-gray-300">Color</label>
-                                <div className="flex flex-wrap gap-2">
-                                    {colorOptions.map(c => (
-                                        <button
-                                            key={c}
-                                            onClick={() => setColor(c)}
-                                            className={`w-8 h-8 rounded-full transition-all ${color === c ? 'ring-2 ring-offset-2 ring-gray-400 scale-110' : ''
-                                                } `}
-                                            style={{ backgroundColor: c }}
-                                        />
-                                    ))}
-                                </div>
-                            </div>
-
-                            {/* Frecuencia (Simplified for now, keeps existing logic) */}
-                            {habitType === 'good' && (
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div>
-                                        <label className="block text-sm font-medium mb-1 dark:text-gray-300">Veces por semana</label>
-                                        <select
-                                            value={vecesPorSemana}
-                                            onChange={(e) => setVecesPorSemana(parseInt(e.target.value))}
-                                            className="w-full px-4 py-2 border-2 border-gray-200 dark:border-gray-600 rounded-xl bg-gray-50 dark:bg-gray-700 dark:text-white"
-                                        >
-                                            {[1, 2, 3, 4, 5, 6, 7].map(n => (
-                                                <option key={n} value={n}>{n} {n === 1 ? 'vez' : 'veces'}</option>
-                                            ))}
-                                        </select>
-                                    </div>
-                                    <div>
-                                        <label className="block text-sm font-medium mb-1 dark:text-gray-300">Veces por día</label>
-                                        <select
-                                            value={vecesPorDia}
-                                            onChange={(e) => setVecesPorDia(parseInt(e.target.value))}
-                                            className="w-full px-4 py-2 border-2 border-gray-200 dark:border-gray-600 rounded-xl bg-gray-50 dark:bg-gray-700 dark:text-white"
-                                        >
-                                            {[1, 2, 3, 4, 5].map(n => (
-                                                <option key={n} value={n}>{n} {n === 1 ? 'vez' : 'veces'}</option>
-                                            ))}
-                                        </select>
+                                {/* Color */}
+                                <div>
+                                    <label className="block text-sm font-medium mb-2 dark:text-gray-300">Color</label>
+                                    <div className="flex flex-wrap gap-2">
+                                        {colorOptions.map(c => (
+                                            <button
+                                                key={c}
+                                                onClick={() => setColor(c)}
+                                                className={`w-8 h-8 rounded-full transition-all ${color === c ? 'ring-2 ring-offset-2 ring-gray-400 scale-110' : ''
+                                                    } `}
+                                                style={{ backgroundColor: c }}
+                                            />
+                                        ))}
                                     </div>
                                 </div>
-                            )}
-                        </div>
 
-                        <div className="flex gap-3 mt-6">
-                            <button
-                                onClick={resetForm}
-                                className="flex-1 py-2 border-2 border-gray-200 dark:border-gray-600 rounded-xl font-medium dark:text-white"
-                            >
-                                Cancelar
-                            </button>
-                            <button
-                                onClick={handleSubmit}
-                                className={`flex-1 py-2 text-white rounded-xl font-medium ${habitType === 'good' ? 'bg-green-500' : 'bg-red-500'
-                                    } `}
-                            >
-                                {editingId ? 'Guardar' : 'Crear'}
-                            </button>
+                                {/* Frecuencia (Simplified for now, keeps existing logic) */}
+                                {habitType === 'good' && (
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div>
+                                            <label className="block text-sm font-medium mb-1 dark:text-gray-300">Veces por semana</label>
+                                            <select
+                                                value={vecesPorSemana}
+                                                onChange={(e) => setVecesPorSemana(parseInt(e.target.value))}
+                                                className="w-full px-4 py-2 border-2 border-gray-200 dark:border-gray-600 rounded-xl bg-gray-50 dark:bg-gray-700 dark:text-white"
+                                            >
+                                                {[1, 2, 3, 4, 5, 6, 7].map(n => (
+                                                    <option key={n} value={n}>{n} {n === 1 ? 'vez' : 'veces'}</option>
+                                                ))}
+                                            </select>
+                                        </div>
+                                        <div>
+                                            <label className="block text-sm font-medium mb-1 dark:text-gray-300">Veces por día</label>
+                                            <select
+                                                value={vecesPorDia}
+                                                onChange={(e) => setVecesPorDia(parseInt(e.target.value))}
+                                                className="w-full px-4 py-2 border-2 border-gray-200 dark:border-gray-600 rounded-xl bg-gray-50 dark:bg-gray-700 dark:text-white"
+                                            >
+                                                {[1, 2, 3, 4, 5].map(n => (
+                                                    <option key={n} value={n}>{n} {n === 1 ? 'vez' : 'veces'}</option>
+                                                ))}
+                                            </select>
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* Footer - Fixed Buttons */}
+                            <div className="flex gap-3 p-6 pt-2 border-t border-gray-100 dark:border-gray-700 mt-auto">
+                                <button
+                                    onClick={resetForm}
+                                    className="flex-1 py-2 border-2 border-gray-200 dark:border-gray-600 rounded-xl font-medium dark:text-white"
+                                >
+                                    Cancelar
+                                </button>
+                                <button
+                                    onClick={handleSubmit}
+                                    className={`flex-1 py-2 text-white rounded-xl font-medium ${habitType === 'good' ? 'bg-green-500' : 'bg-red-500'
+                                        } `}
+                                >
+                                    {editingId ? 'Guardar' : 'Crear'}
+                                </button>
+                            </div>
                         </div>
                     </div>
                 )
