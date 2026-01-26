@@ -20,10 +20,10 @@ export function useHabits() {
 
         const { data, error } = await supabase
             .from('habits')
-            .select('*')
+            .select('*, micro_step, anchor, identity_affirmation')
             .eq('user_id', user.id)
             .eq('activo', true)
-            .order('created_at')
+            .order('created_at', { ascending: false })
 
         if (error) {
             console.error('Error fetching habits:', error)
@@ -125,6 +125,57 @@ export function useHabits() {
 
             return { error: error ? new Error(error.message) : null }
         }
+
+    }
+
+
+    const logHabitReflection = async (habitId: string, friction: string, completed: boolean) => {
+        const today = new Date().toISOString().split('T')[0]
+        const existing = completions.find(c => c.habit_id === habitId)
+
+        if (existing) {
+            const { error } = await supabase
+                .from('habit_completions')
+                .update({
+                    completado: completed,
+                    notas: friction
+                })
+                .eq('id', existing.id)
+
+            if (!error) {
+                await fetchTodayCompletions()
+                if (existing.completado !== completed) {
+                    await updateStreaks(habitId, completed)
+                    // Reward logic
+                    if (completed) {
+                        await addXp(20)
+                        await addCoins(5)
+                    } else {
+                        await addXp(-20)
+                        await addCoins(-5)
+                    }
+                }
+            }
+        } else {
+            const { error } = await supabase
+                .from('habit_completions')
+                .insert({
+                    habit_id: habitId,
+                    user_id: user?.id,
+                    fecha: today,
+                    completado: completed,
+                    notas: friction
+                })
+
+            if (!error) {
+                await fetchTodayCompletions()
+                if (completed) {
+                    await updateStreaks(habitId, true)
+                    await addXp(20)
+                    await addCoins(5)
+                }
+            }
+        }
     }
 
     const updateStreaks = async (habitId: string, completed: boolean) => {
@@ -205,6 +256,7 @@ export function useHabits() {
         toggleHabitCompletion,
         deleteHabit,
         isHabitCompletedToday,
+        logHabitReflection,
         maxStreak,
         maxRecord,
         todayCompleted,

@@ -194,6 +194,9 @@ export interface Database {
                     veces_por_dia: number
                     type: 'good' | 'bad'
                     attribute: 'fuerza' | 'sabiduria' | 'carisma' | 'disciplina' | 'salud' | null
+                    micro_step: string | null
+                    anchor: string | null
+                    identity_affirmation: string | null
                     created_at: string
                 }
                 Insert: {
@@ -216,6 +219,9 @@ export interface Database {
                     veces_por_dia?: number
                     type?: 'good' | 'bad'
                     attribute?: 'fuerza' | 'sabiduria' | 'carisma' | 'disciplina' | 'salud' | null
+                    micro_step?: string | null
+                    anchor?: string | null
+                    identity_affirmation?: string | null
                     created_at?: string
                 }
                 Update: {
@@ -238,6 +244,9 @@ export interface Database {
                     veces_por_dia?: number
                     type?: 'good' | 'bad'
                     attribute?: 'fuerza' | 'sabiduria' | 'carisma' | 'disciplina' | 'salud' | null
+                    micro_step?: string | null
+                    anchor?: string | null
+                    identity_affirmation?: string | null
                     created_at?: string
                 }
             }
