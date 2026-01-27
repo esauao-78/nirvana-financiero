@@ -120,10 +120,17 @@ export function HabitTracker() {
             identity_affirmation: identityAffirmation || null
         }
 
+        let result;
         if (editingId) {
-            await updateHabit(editingId, habitData)
+            result = await updateHabit(editingId, habitData)
         } else {
-            await createHabit(habitData)
+            result = await createHabit(habitData)
+        }
+
+        if (result.error) {
+            alert(`Error al guardar: ${result.error.message}`)
+            console.error('Error saving habit:', result.error)
+            return
         }
 
         resetForm()

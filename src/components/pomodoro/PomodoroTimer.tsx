@@ -1,25 +1,26 @@
 import { useState, useEffect, useRef } from 'react'
 import { useTasks } from '../../hooks/useTasks'
 import { usePomodoro } from '../../hooks/usePomodoro'
-import { Timer, Play, Pause, RotateCcw, Coffee, Brain, Clock, Target, BarChart3 } from 'lucide-react'
+import { PomodoroStats } from './PomodoroStats'
+import { Timer, Play, Pause, RotateCcw, Coffee, Brain } from 'lucide-react'
 
 type TimerMode = 'focus' | 'short_break' | 'long_break'
 
+const STORAGE_KEY = 'pomodoro_state'
+
+interface PomodoroState {
+    mode: TimerMode
+    endTime: number | null
+    timeLeft: number
+    isRunning: boolean
+    taskId: string | null
+    sessionsCompleted: number
+    lastUpdated: number
+}
+
 export function PomodoroTimer() {
     const { tasks } = useTasks()
-    const { createSession, todayFocusMinutes, totalFocusMinutes, getTaskFocusTime, todaySessions } = usePomodoro()
-
-    const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null)
-    const [mode, setMode] = useState<TimerMode>('focus')
-    const [timeLeft, setTimeLeft] = useState(25 * 60) // 25 minutes in seconds
-    const [isRunning, setIsRunning] = useState(false)
-    const [sessionsCompleted, setSessionsCompleted] = useState(0)
-
-    const intervalRef = useRef<number | null>(null)
-    const startTimeRef = useRef<number>(0)
-    const audioRef = useRef<HTMLAudioElement | null>(null)
-    const audioContextRef = useRef<AudioContext | null>(null)
-    const [tickEnabled, setTickEnabled] = useState(true)
+    const { createSession } = usePomodoro()
 
     const durations: Record<TimerMode, number> = {
         focus: 25 * 60,
@@ -33,91 +34,119 @@ export function PomodoroTimer() {
         long_break: { label: 'Descanso Largo', color: 'from-blue-500 to-indigo-500', icon: <Coffee className="w-6 h-6" /> },
     }
 
-    const playTickSound = () => {
-        if (!tickEnabled) return
+    // Lazy initialization logic
+    const getInitialState = (): Partial<PomodoroState> => {
+        const savedState = localStorage.getItem(STORAGE_KEY)
+        if (!savedState) return {}
+
         try {
-            if (!audioContextRef.current) {
-                audioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)()
+            const parsed: PomodoroState = JSON.parse(savedState)
+            // Calculate remaining time if it was running
+            if (parsed.isRunning && parsed.endTime) {
+                const now = Date.now()
+                const remaining = Math.ceil((parsed.endTime - now) / 1000)
+                return {
+                    ...parsed,
+                    timeLeft: remaining > 0 ? remaining : 0,
+                    // If time passed, we might want to auto-complete or pause? 
+                    // For now, let the effect handle completion if timeLeft becomes 0
+                }
             }
-            const ctx = audioContextRef.current
-            const oscillator = ctx.createOscillator()
-            const gainNode = ctx.createGain()
-
-            oscillator.connect(gainNode)
-            gainNode.connect(ctx.destination)
-
-            oscillator.frequency.setValueAtTime(800, ctx.currentTime)
-            gainNode.gain.setValueAtTime(0.1, ctx.currentTime)
-            gainNode.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.05)
-
-            oscillator.start(ctx.currentTime)
-            oscillator.stop(ctx.currentTime + 0.05)
+            return parsed
         } catch (e) {
-            // Audio not supported
+            console.error('Error parsing pomodoro state:', e)
+            return {}
         }
     }
 
+    const initialState = getInitialState()
+
+    // State with lazy initialization
+    const [mode, setMode] = useState<TimerMode>(initialState.mode || 'focus')
+    const [timeLeft, setTimeLeft] = useState(initialState.timeLeft !== undefined ? initialState.timeLeft : durations.focus)
+    const [isRunning, setIsRunning] = useState(initialState.isRunning || false)
+    const [selectedTaskId, setSelectedTaskId] = useState<string | null>(initialState.taskId || null)
+    const [sessionsCompleted, setSessionsCompleted] = useState(initialState.sessionsCompleted || 0)
+
+    const audioRef = useRef<HTMLAudioElement | null>(null)
+
+    // Initialize audio
     useEffect(() => {
-        // Create audio element for notifications
         audioRef.current = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2teleywLPpfWz7BuJQpAktLIpWMWCEqT0MSkYBMGTZHQw6JfEgZOj87BoVwPB1CMzb+gWg0HUorMvp5YCwdUiMu8nFYKCFaGybqaVAgIV4TIuJhSBwhZgsW2llAGCV2BwrSTTQUJYH+/s5FLBApjfLywjkkDCmZ6ua6MRwILaXi3q4lGAQxsdLWpikQBDW9ysqaIPwEOcm+wp4c9AQ91bK6lhTsBD3hqq6OEOQURP2emmYIzAA==')
-        return () => {
-            if (intervalRef.current) clearInterval(intervalRef.current)
-            if (audioContextRef.current) audioContextRef.current.close()
-        }
     }, [])
 
+    // Persist state whenever it changes
     useEffect(() => {
-        if (isRunning && timeLeft > 0) {
-            intervalRef.current = window.setInterval(() => {
-                setTimeLeft(prev => prev - 1)
-                if (mode === 'focus') {
-                    playTickSound()
-                }
-            }, 1000)
-        } else if (timeLeft === 0) {
-            handleTimerComplete()
+        const state: PomodoroState = {
+            mode,
+            endTime: isRunning ? Date.now() + timeLeft * 1000 : null,
+            timeLeft,
+            isRunning,
+            taskId: selectedTaskId,
+            sessionsCompleted,
+            lastUpdated: Date.now()
         }
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(state))
+    }, [mode, timeLeft, isRunning, selectedTaskId, sessionsCompleted])
+
+    // Timer Loop
+    useEffect(() => {
+        if (!isRunning) return
+
+        let animationFrameId: number
+        const endTime = Date.now() + timeLeft * 1000
+
+        const tick = () => {
+            const now = Date.now()
+            const remaining = Math.ceil((endTime - now) / 1000)
+
+            if (remaining <= 0) {
+                setTimeLeft(0)
+                setIsRunning(false)
+                handleTimerComplete(mode, selectedTaskId)
+            } else {
+                setTimeLeft(remaining)
+                animationFrameId = requestAnimationFrame(tick)
+            }
+        }
+
+        animationFrameId = requestAnimationFrame(tick)
 
         return () => {
-            if (intervalRef.current) clearInterval(intervalRef.current)
+            if (animationFrameId) cancelAnimationFrame(animationFrameId)
         }
-    }, [isRunning, timeLeft, tickEnabled])
+    }, [isRunning, mode]) // Intentionally not including timeLeft
 
-    const handleTimerComplete = async () => {
+    const handleTimerComplete = async (currentMode: TimerMode, taskId: string | null) => {
         setIsRunning(false)
+        if (audioRef.current) audioRef.current.play().catch(() => { })
 
-        // Play sound
-        if (audioRef.current) {
-            audioRef.current.play().catch(() => { })
-        }
+        // Save session if it was a focus session
+        if (currentMode === 'focus') {
+            const durationMinutes = Math.round(durations.focus / 60)
+            await createSession(durationMinutes, 'focus', taskId, true)
 
-        // Save session
-        const durationMinutes = Math.round((durations[mode] - timeLeft) / 60)
-        if (durationMinutes > 0) {
-            await createSession(durationMinutes, mode, selectedTaskId, true)
-        }
-
-        if (mode === 'focus') {
-            setSessionsCompleted(prev => prev + 1)
-            // After 4 focus sessions, suggest long break
-            if ((sessionsCompleted + 1) % 4 === 0) {
-                setMode('long_break')
-                setTimeLeft(durations.long_break)
-            } else {
-                setMode('short_break')
-                setTimeLeft(durations.short_break)
-            }
+            setSessionsCompleted(prev => {
+                const newValue = prev + 1
+                // Determine next mode logic inside the update to ensure fresh state
+                if ((newValue) % 4 === 0) {
+                    setMode('long_break')
+                    setTimeLeft(durations.long_break)
+                } else {
+                    setMode('short_break')
+                    setTimeLeft(durations.short_break)
+                }
+                return newValue
+            })
         } else {
+            // Break is over, back to focus
             setMode('focus')
             setTimeLeft(durations.focus)
         }
     }
 
     const toggleTimer = () => {
-        if (!isRunning) {
-            startTimeRef.current = Date.now()
-        }
-        setIsRunning(!isRunning)
+        setIsRunning(prev => !prev)
     }
 
     const resetTimer = () => {
@@ -143,8 +172,8 @@ export function PomodoroTimer() {
         return hours > 0 ? `${hours}h ${mins}m` : `${mins}m`
     }
 
-    const progress = ((durations[mode] - timeLeft) / durations[mode]) * 100
     const activeTasks = tasks.filter(t => t.estado !== 'completada' && t.estado !== 'cancelada')
+    const progress = Math.max(0, Math.min(100, ((durations[mode] - timeLeft) / durations[mode]) * 100))
 
     return (
         <div className="p-6 max-w-2xl mx-auto">
@@ -153,25 +182,6 @@ export function PomodoroTimer() {
                     <Timer className="w-7 h-7 text-red-500" />
                     Temporizador Pomodoro
                 </h2>
-            </div>
-
-            {/* Stats Cards */}
-            <div className="grid grid-cols-3 gap-4 mb-6">
-                <div className="bg-white dark:bg-gray-800 p-4 rounded-2xl shadow-lg text-center">
-                    <Clock className="w-6 h-6 mx-auto text-orange-500 mb-2" />
-                    <p className="text-2xl font-bold dark:text-white">{formatMinutes(todayFocusMinutes)}</p>
-                    <p className="text-xs text-gray-500 dark:text-gray-400">Hoy</p>
-                </div>
-                <div className="bg-white dark:bg-gray-800 p-4 rounded-2xl shadow-lg text-center">
-                    <BarChart3 className="w-6 h-6 mx-auto text-blue-500 mb-2" />
-                    <p className="text-2xl font-bold dark:text-white">{todaySessions.length}</p>
-                    <p className="text-xs text-gray-500 dark:text-gray-400">Sesiones hoy</p>
-                </div>
-                <div className="bg-white dark:bg-gray-800 p-4 rounded-2xl shadow-lg text-center">
-                    <Target className="w-6 h-6 mx-auto text-green-500 mb-2" />
-                    <p className="text-2xl font-bold dark:text-white">{formatMinutes(totalFocusMinutes)}</p>
-                    <p className="text-xs text-gray-500 dark:text-gray-400">Total</p>
-                </div>
             </div>
 
             {/* Task Selector */}
@@ -208,30 +218,34 @@ export function PomodoroTimer() {
             </div>
 
             {/* Timer Display */}
-            <div className={`bg-gradient-to-br ${modeInfo[mode].color} p-8 rounded-3xl text-white text-center mb-8 relative overflow-hidden`}>
-                {/* Progress ring */}
-                <div className="absolute inset-4 rounded-full border-4 border-white/20" />
-                <svg className="absolute inset-4" viewBox="0 0 100 100">
+            <div className={`bg-gradient-to-br ${modeInfo[mode].color} p-8 rounded-3xl text-white text-center mb-8 relative overflow-hidden shadow-xl`}>
+                {/* Background Progress Circle */}
+                <div className="absolute inset-0 flex items-center justify-center opacity-10 pointer-events-none">
+                    <Timer className="w-64 h-64" />
+                </div>
+
+                {/* Progress ring using SVG for precise control */}
+                <svg className="absolute inset-4 sm:inset-8 w-[calc(100%-2rem)] h-[calc(100%-2rem)] sm:w-[calc(100%-4rem)] sm:h-[calc(100%-4rem)] pointer-events-none" viewBox="0 0 100 100">
                     <circle
                         cx="50"
                         cy="50"
-                        r="46"
+                        r="45"
                         fill="none"
-                        stroke="rgba(255,255,255,0.3)"
+                        stroke="rgba(255,255,255,0.2)"
                         strokeWidth="4"
                     />
                     <circle
                         cx="50"
                         cy="50"
-                        r="46"
+                        r="45"
                         fill="none"
                         stroke="white"
                         strokeWidth="4"
                         strokeLinecap="round"
-                        strokeDasharray={`${2 * Math.PI * 46}`}
-                        strokeDashoffset={`${2 * Math.PI * 46 * (1 - progress / 100)}`}
+                        strokeDasharray={`${2 * Math.PI * 45}`}
+                        strokeDashoffset={`${2 * Math.PI * 45 * (1 - progress / 100)}`}
                         transform="rotate(-90 50 50)"
-                        className="transition-all duration-1000"
+                        className="transition-all duration-300 ease-linear"
                     />
                 </svg>
 
@@ -240,15 +254,17 @@ export function PomodoroTimer() {
                         {modeInfo[mode].icon}
                         <span className="text-lg font-medium opacity-90">{modeInfo[mode].label}</span>
                     </div>
-                    <p className="text-7xl font-bold font-mono tracking-tight">{formatTime(timeLeft)}</p>
-                    <p className="text-sm opacity-75 mt-2">
-                        {sessionsCompleted} sesiones completadas
+                    <p className="text-7xl sm:text-8xl font-bold font-mono tracking-tight my-4">
+                        {formatTime(timeLeft)}
+                    </p>
+                    <p className="text-sm opacity-75 mt-2 bg-black/10 inline-block px-3 py-1 rounded-full">
+                        {sessionsCompleted} sesiones hoy
                     </p>
                 </div>
             </div>
 
             {/* Controls */}
-            <div className="flex justify-center gap-4">
+            <div className="flex justify-center gap-4 mb-8">
                 <button
                     onClick={resetTimer}
                     className="p-4 bg-gray-100 dark:bg-gray-700 rounded-2xl text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
@@ -257,7 +273,7 @@ export function PomodoroTimer() {
                 </button>
                 <button
                     onClick={toggleTimer}
-                    className={`px-8 py-4 rounded-2xl font-semibold text-white text-lg flex items-center gap-2 transition-all ${isRunning
+                    className={`px-8 py-4 rounded-2xl font-semibold text-white text-lg flex items-center gap-2 transition-all shadow-lg hover:scale-105 active:scale-95 ${isRunning
                         ? 'bg-orange-500 hover:bg-orange-600'
                         : 'bg-green-500 hover:bg-green-600'
                         }`}
@@ -276,17 +292,10 @@ export function PomodoroTimer() {
                 </button>
             </div>
 
-            {/* Selected task time */}
-            {selectedTaskId && (
-                <div className="mt-8 text-center">
-                    <p className="text-sm text-gray-500 dark:text-gray-400">
-                        Tiempo total en esta tarea:{' '}
-                        <span className="font-bold text-brand-blue">
-                            {formatMinutes(getTaskFocusTime(selectedTaskId))}
-                        </span>
-                    </p>
-                </div>
-            )}
+            <hr className="my-8 border-gray-200 dark:border-gray-700" />
+
+            {/* Dashboard Integration */}
+            <PomodoroStats />
         </div>
     )
 }
