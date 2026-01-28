@@ -24,18 +24,50 @@ export function useProsperity() {
     const fetchPillars = useCallback(async () => {
         if (!user) return
 
-        const { data, error } = await supabase
+        const { data: existingPillars, error } = await supabase
             .from('prosperity_pillars')
             .select('*')
             .eq('user_id', user.id)
-            .order('pilar')
 
         if (error) {
             console.error('Error fetching pillars:', error)
             return
         }
 
-        setPillars(data || [])
+        // Check if any default pillars are missing
+        const missingPillars = DEFAULT_PILLARS.filter(def =>
+            !existingPillars?.some(ext => ext.pilar === def.pilar)
+        )
+
+        if (missingPillars.length > 0) {
+            // Insert missing pillars
+            const inserts: ProsperityInsert[] = missingPillars.map(p => ({
+                user_id: user.id,
+                ...p
+            }))
+
+            await supabase
+                .from('prosperity_pillars')
+                .upsert(inserts, { onConflict: 'user_id,pilar' })
+
+            // Re-fetch to get everything
+            const { data: allPillars } = await supabase
+                .from('prosperity_pillars')
+                .select('*')
+                .eq('user_id', user.id)
+                .order('pilar')
+
+            setPillars(allPillars || [])
+        } else {
+            // Sort by default order to keep UI consistent
+            const sorted = [...(existingPillars || [])].sort((a, b) => {
+                const indexA = DEFAULT_PILLARS.findIndex(p => p.pilar === a.pilar)
+                const indexB = DEFAULT_PILLARS.findIndex(p => p.pilar === b.pilar)
+                return indexA - indexB
+            })
+            setPillars(sorted)
+        }
+
         setLoading(false)
     }, [user])
 

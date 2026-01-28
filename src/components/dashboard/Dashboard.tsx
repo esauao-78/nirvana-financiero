@@ -87,7 +87,10 @@ export function Dashboard({ onEmergency }: DashboardProps) {
 
             // Load pilares from profile or calculate from goals
             if (profile.pilares_prosperidad) {
-                setPilares(profile.pilares_prosperidad as Record<string, number>)
+                setPilares(prev => ({
+                    ...prev,
+                    ...(profile.pilares_prosperidad as Record<string, number>)
+                }))
             }
         }
     }, [profile])
