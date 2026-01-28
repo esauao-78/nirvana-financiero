@@ -12,6 +12,8 @@ const DEFAULT_PILLARS: Array<{ pilar: ProsperityPillar['pilar'], valor_actual: n
     { pilar: 'fisica', valor_actual: 5, valor_deseado: 10 },
     { pilar: 'relacional', valor_actual: 5, valor_deseado: 10 },
     { pilar: 'entorno', valor_actual: 5, valor_deseado: 10 },
+    { pilar: 'salud', valor_actual: 5, valor_deseado: 10 },
+    { pilar: 'desarrollo_personal', valor_actual: 5, valor_deseado: 10 },
 ]
 
 export function useProsperity() {

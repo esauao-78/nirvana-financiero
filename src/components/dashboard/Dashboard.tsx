@@ -41,6 +41,8 @@ const PILARES_CONFIG = [
     { id: 'fisica', name: '💪 Física', color: 'bg-orange-500', emoji: '💪' },
     { id: 'relacional', name: '👥 Relacional', color: 'bg-blue-500', emoji: '👥' },
     { id: 'entorno', name: '🏠 Entorno', color: 'bg-purple-500', emoji: '🏠' },
+    { id: 'salud', name: '🩺 Salud', color: 'bg-teal-500', emoji: '🩺' },
+    { id: 'desarrollo_personal', name: '📚 Desarrollo Personal', color: 'bg-indigo-500', emoji: '📚' },
 ]
 
 interface DashboardProps {
@@ -65,6 +67,8 @@ export function Dashboard({ onEmergency }: DashboardProps) {
         fisica: 50,
         relacional: 50,
         entorno: 50,
+        salud: 50,
+        desarrollo_personal: 50,
     })
     const [saving, setSaving] = useState(false)
 
@@ -96,6 +100,8 @@ export function Dashboard({ onEmergency }: DashboardProps) {
             fisica: { total: 0, completed: 0 },
             relacional: { total: 0, completed: 0 },
             entorno: { total: 0, completed: 0 },
+            salud: { total: 0, completed: 0 },
+            desarrollo_personal: { total: 0, completed: 0 },
         }
 
         goals.forEach(goal => {

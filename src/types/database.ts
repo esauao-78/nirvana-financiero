@@ -95,7 +95,7 @@ export interface Database {
                 Row: {
                     id: string
                     user_id: string
-                    pilar: 'economica' | 'emocional' | 'fisica' | 'relacional' | 'entorno'
+                    pilar: 'economica' | 'emocional' | 'fisica' | 'relacional' | 'entorno' | 'salud' | 'desarrollo_personal'
                     valor_actual: number
                     valor_deseado: number
                     updated_at: string
@@ -103,7 +103,7 @@ export interface Database {
                 Insert: {
                     id?: string
                     user_id: string
-                    pilar: 'economica' | 'emocional' | 'fisica' | 'relacional' | 'entorno'
+                    pilar: 'economica' | 'emocional' | 'fisica' | 'relacional' | 'entorno' | 'salud' | 'desarrollo_personal'
                     valor_actual?: number
                     valor_deseado?: number
                     updated_at?: string
@@ -111,7 +111,7 @@ export interface Database {
                 Update: {
                     id?: string
                     user_id?: string
-                    pilar?: 'economica' | 'emocional' | 'fisica' | 'relacional' | 'entorno'
+                    pilar?: 'economica' | 'emocional' | 'fisica' | 'relacional' | 'entorno' | 'salud' | 'desarrollo_personal'
                     valor_actual?: number
                     valor_deseado?: number
                     updated_at?: string
@@ -123,7 +123,7 @@ export interface Database {
                     user_id: string
                     titulo: string
                     descripcion: string | null
-                    pilar: 'economica' | 'emocional' | 'fisica' | 'relacional' | 'entorno' | null
+                    pilar: 'economica' | 'emocional' | 'fisica' | 'relacional' | 'entorno' | 'salud' | 'desarrollo_personal' | null
                     fecha_limite: string | null
                     progreso: number
                     completada: boolean
@@ -141,7 +141,7 @@ export interface Database {
                     user_id: string
                     titulo: string
                     descripcion?: string | null
-                    pilar?: 'economica' | 'emocional' | 'fisica' | 'relacional' | 'entorno' | null
+                    pilar?: 'economica' | 'emocional' | 'fisica' | 'relacional' | 'entorno' | 'salud' | 'desarrollo_personal' | null
                     fecha_limite?: string | null
                     progreso?: number
                     completada?: boolean
@@ -159,7 +159,7 @@ export interface Database {
                     user_id?: string
                     titulo?: string
                     descripcion?: string | null
-                    pilar?: 'economica' | 'emocional' | 'fisica' | 'relacional' | 'entorno' | null
+                    pilar?: 'economica' | 'emocional' | 'fisica' | 'relacional' | 'entorno' | 'salud' | 'desarrollo_personal' | null
                     fecha_limite?: string | null
                     progreso?: number
                     completada?: boolean

@@ -83,6 +83,8 @@ export function IdentityEditor() {
         fisica: { hoy: 5, deseado: 10 },
         relacional: { hoy: 5, deseado: 10 },
         entorno: { hoy: 5, deseado: 10 },
+        salud: { hoy: 5, deseado: 10 },
+        desarrollo_personal: { hoy: 5, deseado: 10 },
     })
 
     useEffect(() => {
@@ -122,7 +124,9 @@ export function IdentityEditor() {
         emocional: '💖 Emocional',
         fisica: '💪 Salud Física',
         relacional: '👥 Relaciones',
-        entorno: '🏠 Entorno'
+        entorno: '🏠 Entorno',
+        salud: '🩺 Salud',
+        desarrollo_personal: '📚 Desarrollo Personal'
     }
 
     const addNoNegociable = () => {

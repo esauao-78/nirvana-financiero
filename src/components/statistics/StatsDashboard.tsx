@@ -20,7 +20,9 @@ export function StatsDashboard() {
         emocional: 'Emocional',
         fisica: 'Salud Física',
         relacional: 'Relaciones',
-        entorno: 'Entorno'
+        entorno: 'Entorno',
+        salud: 'Salud',
+        desarrollo_personal: 'Desarrollo Personal'
     }
 
     const completionRate = goals.length > 0

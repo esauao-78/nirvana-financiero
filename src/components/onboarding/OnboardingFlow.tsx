@@ -32,6 +32,8 @@ export function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
         fisica: { hoy: 5, deseado: 10 },
         relacional: { hoy: 5, deseado: 10 },
         entorno: { hoy: 5, deseado: 10 },
+        salud: { hoy: 5, deseado: 10 },
+        desarrollo_personal: { hoy: 5, deseado: 10 },
     })
 
     const totalSteps = 6
@@ -96,7 +98,9 @@ export function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
         emocional: '💖 Emocional',
         fisica: '💪 Salud Física',
         relacional: '👥 Relaciones',
-        entorno: '🏠 Entorno'
+        entorno: '🏠 Entorno',
+        salud: '🩺 Salud',
+        desarrollo_personal: '📚 Desarrollo Personal'
     }
 
     return (
@@ -109,8 +113,8 @@ export function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
                             <div
                                 key={i}
                                 className={`h-2 flex-1 rounded-full transition-all duration-500 ${i < step
-                                        ? 'bg-gradient-to-r from-gold-400 to-gold-500'
-                                        : 'bg-gray-200 dark:bg-gray-700'
+                                    ? 'bg-gradient-to-r from-gold-400 to-gold-500'
+                                    : 'bg-gray-200 dark:bg-gray-700'
                                     }`}
                             />
                         ))}

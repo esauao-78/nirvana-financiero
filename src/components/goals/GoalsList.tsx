@@ -29,6 +29,8 @@ export function GoalsList() {
         { value: 'fisica', label: '💪 Física' },
         { value: 'relacional', label: '👥 Relacional' },
         { value: 'entorno', label: '🏠 Entorno' },
+        { value: 'salud', label: '🩺 Salud' },
+        { value: 'desarrollo_personal', label: '📚 Desarrollo Personal' },
     ]
 
     const estados: { value: EstadoMeta; label: string; color: string; icon: React.ReactNode }[] = [
@@ -125,6 +127,8 @@ export function GoalsList() {
         fisica: 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400',
         relacional: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400',
         entorno: 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400',
+        salud: 'bg-teal-100 text-teal-700 dark:bg-teal-900/30 dark:text-teal-400',
+        desarrollo_personal: 'bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-400',
     }
 
     const formatMoney = (amount: number) => {
