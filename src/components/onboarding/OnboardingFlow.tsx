@@ -99,7 +99,7 @@ export function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
         fisica: '💪 Salud Física',
         relacional: '👥 Relaciones',
         entorno: '🏠 Entorno',
-        salud: '🩺 Salud',
+        salud: '🩺 Disciplina/Caracter',
         desarrollo_personal: '📚 Desarrollo Personal'
     }
 

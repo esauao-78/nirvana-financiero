@@ -29,7 +29,7 @@ export function GoalsList() {
         { value: 'fisica', label: '💪 Física' },
         { value: 'relacional', label: '👥 Relacional' },
         { value: 'entorno', label: '🏠 Entorno' },
-        { value: 'salud', label: '🩺 Salud' },
+        { value: 'salud', label: '🩺 Disciplina/Caracter' },
         { value: 'desarrollo_personal', label: '📚 Desarrollo Personal' },
     ]
 

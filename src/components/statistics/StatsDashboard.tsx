@@ -1,16 +1,36 @@
+import { useState, useEffect } from 'react'
 import { useProsperity } from '../../hooks/useProsperity'
 import { useGoals } from '../../hooks/useGoals'
 import { useHabits } from '../../hooks/useHabits'
 import { useDiary } from '../../hooks/useDiary'
 import { useFinances } from '../../hooks/useFinances'
-import { TrendingUp, Target, CheckSquare, Heart, DollarSign } from 'lucide-react'
+import { TrendingUp, Target, CheckSquare, Heart, DollarSign, Calendar, ChevronLeft, ChevronRight } from 'lucide-react'
 
 export function StatsDashboard() {
     const { pillars } = useProsperity()
     const { goals, completedGoals, activeGoals } = useGoals()
-    const { habits, maxStreak, maxRecord } = useHabits()
+    const { habits, maxStreak, maxRecord, getCompletionsForDate } = useHabits()
     const { entries, averageEmotionalState, getEmotionalTrend } = useDiary()
     const { getMonthlyBalance, totalBalance } = useFinances()
+
+    const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0])
+    const [dailyCompletions, setDailyCompletions] = useState<any[]>([])
+
+    useEffect(() => {
+        const fetchDailyStats = async () => {
+            if (getCompletionsForDate) {
+                const completions = await getCompletionsForDate(selectedDate)
+                setDailyCompletions(completions)
+            }
+        }
+        fetchDailyStats()
+    }, [selectedDate, getCompletionsForDate])
+
+    const changeDate = (days: number) => {
+        const date = new Date(selectedDate)
+        date.setDate(date.getDate() + days)
+        setSelectedDate(date.toISOString().split('T')[0])
+    }
 
     const emotionalTrend = getEmotionalTrend(7)
     const monthlyBalance = getMonthlyBalance()
@@ -21,7 +41,7 @@ export function StatsDashboard() {
         fisica: 'Salud Física',
         relacional: 'Relaciones',
         entorno: 'Entorno',
-        salud: 'Salud',
+        salud: 'Disciplina/Caracter',
         desarrollo_personal: 'Desarrollo Personal'
     }
 
@@ -176,6 +196,41 @@ export function StatsDashboard() {
                                 <span className="text-gray-600 dark:text-gray-300">Check-ins totales</span>
                                 <span className="font-bold text-pink-500">{entries.length}</span>
                             </div>
+                        </div>
+
+                        <div className="mt-4 pt-3 border-t dark:border-gray-700">
+                            <div className="flex items-center justify-between mb-3">
+                                <span className="text-sm font-medium text-gray-600 dark:text-gray-300 flex items-center gap-2">
+                                    <Calendar className="w-4 h-4" />
+                                    Completados:
+                                </span>
+                                <div className="flex items-center gap-1 bg-gray-100 dark:bg-gray-700 rounded-lg p-0.5">
+                                    <button onClick={() => changeDate(-1)} className="p-1 hover:bg-white dark:hover:bg-gray-600 rounded transition-colors">
+                                        <ChevronLeft className="w-3 h-3" />
+                                    </button>
+                                    <span className="text-xs font-bold dark:text-white min-w-[70px] text-center">
+                                        {new Date(selectedDate).toLocaleDateString('es-MX', { day: '2-digit', month: '2-digit' })}
+                                    </span>
+                                    <button onClick={() => changeDate(1)} className="p-1 hover:bg-white dark:hover:bg-gray-600 rounded transition-colors">
+                                        <ChevronRight className="w-3 h-3" />
+                                    </button>
+                                </div>
+                            </div>
+
+                            {dailyCompletions.length > 0 ? (
+                                <div className="space-y-1.5 max-h-32 overflow-y-auto pr-1 custom-scrollbar">
+                                    {dailyCompletions.map((habit, idx) => (
+                                        <div key={idx} className="flex items-center gap-2 text-xs bg-green-50 dark:bg-green-900/20 p-1.5 rounded-lg border border-green-100 dark:border-green-800">
+                                            <span className="text-green-500 font-bold">✓</span>
+                                            <span className="dark:text-gray-200 truncate">{habit.nombre}</span>
+                                        </div>
+                                    ))}
+                                </div>
+                            ) : (
+                                <p className="text-center text-xs text-gray-400 py-2 italic bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+                                    Sin actividad
+                                </p>
+                            )}
                         </div>
                     </div>
                 </div>

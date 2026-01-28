@@ -247,6 +247,24 @@ export function useHabits() {
         ? Math.round(habits.reduce((sum, h) => sum + h.racha_actual, 0) / habits.length)
         : 0
 
+    const getCompletionsForDate = async (date: string) => {
+        if (!user) return []
+
+        const { data, error } = await supabase
+            .from('habit_completions')
+            .select('*, habits(*)')
+            .eq('user_id', user.id)
+            .eq('fecha', date)
+            .eq('completado', true)
+
+        if (error) {
+            console.error('Error fetching completions for date:', error)
+            return []
+        }
+
+        return data.map(c => c.habits) as Habit[]
+    }
+
     return {
         habits,
         completions,
@@ -261,6 +279,7 @@ export function useHabits() {
         maxRecord,
         todayCompleted,
         overallStreak,
-        refresh: fetchHabits
+        refresh: fetchHabits,
+        getCompletionsForDate
     }
 }
