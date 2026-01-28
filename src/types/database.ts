@@ -197,6 +197,7 @@ export interface Database {
                     micro_step: string | null
                     anchor: string | null
                     identity_affirmation: string | null
+                    orden: number
                     created_at: string
                 }
                 Insert: {
@@ -222,6 +223,7 @@ export interface Database {
                     micro_step?: string | null
                     anchor?: string | null
                     identity_affirmation?: string | null
+                    orden?: number
                     created_at?: string
                 }
                 Update: {
@@ -247,6 +249,7 @@ export interface Database {
                     micro_step?: string | null
                     anchor?: string | null
                     identity_affirmation?: string | null
+                    orden?: number
                     created_at?: string
                 }
             }

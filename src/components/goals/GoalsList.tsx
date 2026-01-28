@@ -2,8 +2,9 @@ import { useState, DragEvent } from 'react'
 import { useGoals } from '../../hooks/useGoals'
 import { DateInput } from '../ui/DateInput'
 import { Plus, Target, Trash2, Edit2, Check, Calendar, List, LayoutGrid, DollarSign, TrendingUp, Pause, Play, ChevronUp, ChevronDown } from 'lucide-react'
+import { GoalsGantt } from './GoalsGantt'
 
-type ViewMode = 'list' | 'kanban'
+type ViewMode = 'list' | 'kanban' | 'gantt'
 type EstadoMeta = 'no_iniciada' | 'en_progreso' | 'completada' | 'en_pausa'
 
 export function GoalsList() {
@@ -21,6 +22,7 @@ export function GoalsList() {
     const [indicadorExito, setIndicadorExito] = useState('')
     const [valorObjetivo, setValorObjetivo] = useState('')
     const [valorActual, setValorActual] = useState('')
+    const [progresoManual, setProgresoManual] = useState('')
     const [estado, setEstado] = useState<EstadoMeta>('no_iniciada')
 
     const pilares = [
@@ -47,7 +49,9 @@ export function GoalsList() {
         setFechaLimite('')
         setIndicadorExito('')
         setValorObjetivo('')
+        setValorObjetivo('')
         setValorActual('')
+        setProgresoManual('')
         setEstado('no_iniciada')
         setShowForm(false)
         setEditingId(null)
@@ -65,7 +69,9 @@ export function GoalsList() {
             valor_objetivo: parseFloat(valorObjetivo) || 0,
             valor_actual: parseFloat(valorActual) || 0,
             estado,
-            progreso: estado === 'completada' ? 100 : Math.round((parseFloat(valorActual) / parseFloat(valorObjetivo)) * 100) || 0
+            progreso: progresoManual
+                ? parseInt(progresoManual)
+                : (estado === 'completada' ? 100 : Math.round((parseFloat(valorActual) / parseFloat(valorObjetivo)) * 100) || 0)
         }
 
         if (editingId) {
@@ -85,6 +91,7 @@ export function GoalsList() {
         setIndicadorExito(goal.indicador_exito || '')
         setValorObjetivo(goal.valor_objetivo?.toString() || '')
         setValorActual(goal.valor_actual?.toString() || '')
+        setProgresoManual(goal.progreso?.toString() || '')
         setEstado(goal.estado || 'no_iniciada')
         setEditingId(goal.id)
         setShowForm(true)
@@ -297,6 +304,13 @@ export function GoalsList() {
                         >
                             <List className={`w-4 h-4 ${viewMode === 'list' ? 'text-brand-blue' : 'text-gray-500'}`} />
                         </button>
+                        <button
+                            onClick={() => setViewMode('gantt')}
+                            className={`p-2 rounded-lg transition-colors ${viewMode === 'gantt' ? 'bg-white dark:bg-gray-600 shadow' : ''}`}
+                            title="Vista Gantt"
+                        >
+                            <TrendingUp className={`w-4 h-4 ${viewMode === 'gantt' ? 'text-brand-blue' : 'text-gray-500'}`} />
+                        </button>
                     </div>
                     <button
                         onClick={() => setShowForm(true)}
@@ -408,6 +422,22 @@ export function GoalsList() {
                                     onChange={setFechaLimite}
                                 />
                             </div>
+
+                            <div>
+                                <label className="block text-sm font-medium mb-1 dark:text-gray-300">Progreso Manual (%) <span className="text-gray-400 font-normal">Opcional</span></label>
+                                <input
+                                    type="number"
+                                    value={progresoManual}
+                                    onChange={(e) => setProgresoManual(e.target.value)}
+                                    placeholder="0-100"
+                                    min="0"
+                                    max="100"
+                                    className="w-full px-4 py-2 border-2 border-gray-200 dark:border-gray-600 rounded-xl bg-gray-50 dark:bg-gray-700 dark:text-white"
+                                />
+                                <p className="text-xs text-gray-500 mt-1">
+                                    Si dejas esto vacío, se calculará automáticamente basado en el valor objetivo.
+                                </p>
+                            </div>
                         </div>
 
                         <div className="flex gap-3 mt-6">
@@ -484,6 +514,10 @@ export function GoalsList() {
                         </div>
                     )}
                 </div>
+            )}
+            {/* GANTT VIEW */}
+            {viewMode === 'gantt' && (
+                <GoalsGantt goals={goals} />
             )}
         </div>
     )

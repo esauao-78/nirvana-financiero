@@ -23,6 +23,7 @@ export function useHabits() {
             .select('*, micro_step, anchor, identity_affirmation')
             .eq('user_id', user.id)
             .eq('activo', true)
+            .order('orden', { ascending: true })
             .order('created_at', { ascending: false })
 
         if (error) {
@@ -265,6 +266,28 @@ export function useHabits() {
         return data.map(c => c.habits) as Habit[]
     }
 
+    const reorderHabits = async (newOrder: { id: string; orden: number }[]) => {
+        if (!user) return
+
+        // Optimistic update
+        const updatedHabits = [...habits]
+        newOrder.forEach(({ id, orden }) => {
+            const habitIndex = updatedHabits.findIndex(h => h.id === id)
+            if (habitIndex > -1) {
+                updatedHabits[habitIndex] = { ...updatedHabits[habitIndex], orden }
+            }
+        })
+        updatedHabits.sort((a, b) => a.orden - b.orden)
+        setHabits(updatedHabits)
+
+        // DB update
+        const updates = newOrder.map(({ id, orden }) =>
+            supabase.from('habits').update({ orden }).eq('id', id)
+        )
+
+        await Promise.all(updates)
+    }
+
     return {
         habits,
         completions,
@@ -280,6 +303,7 @@ export function useHabits() {
         todayCompleted,
         overallStreak,
         refresh: fetchHabits,
-        getCompletionsForDate
+        getCompletionsForDate,
+        reorderHabits
     }
 }

@@ -1,13 +1,13 @@
 import { useState } from 'react'
 import { useHabits } from '../../hooks/useHabits'
-import { Plus, CheckSquare, Flame, Trash2, Edit2, Sun, Moon, Sunset, Clock, Heart, Activity, TrendingUp, X, Shield, Skull, Zap, ArrowRight, Check, XCircle, CheckCircle } from 'lucide-react'
+import { Plus, CheckSquare, Flame, Trash2, Edit2, Sun, Moon, Sunset, Clock, Heart, Activity, TrendingUp, X, Shield, Skull, Zap, ArrowRight, Check, XCircle, CheckCircle, ArrowUp, ArrowDown } from 'lucide-react'
 
 type HoraPreferida = 'mañana' | 'tarde' | 'noche' | 'cualquiera'
 type HabitType = 'good' | 'bad'
 type Attribute = 'fuerza' | 'sabiduria' | 'carisma' | 'disciplina' | 'salud'
 
 export function HabitTracker() {
-    const { habits, createHabit, updateHabit, toggleHabitCompletion, deleteHabit, isHabitCompletedToday, logHabitReflection, maxStreak, maxRecord, loading } = useHabits()
+    const { habits, createHabit, updateHabit, toggleHabitCompletion, deleteHabit, isHabitCompletedToday, logHabitReflection, maxStreak, maxRecord, loading, reorderHabits } = useHabits()
     const [activeTab, setActiveTab] = useState<HabitType>('good')
     const [showForm, setShowForm] = useState(false)
     const [editingId, setEditingId] = useState<string | null>(null)
@@ -137,6 +137,27 @@ export function HabitTracker() {
     }
 
     const filteredHabits = habits.filter(h => (h.type || 'good') === activeTab)
+
+    const handleReorder = async (habitId: string, direction: 'up' | 'down') => {
+        const currentIndex = filteredHabits.findIndex(h => h.id === habitId)
+        if (currentIndex === -1) return
+
+        const newIndex = direction === 'up' ? currentIndex - 1 : currentIndex + 1
+        if (newIndex < 0 || newIndex >= filteredHabits.length) return
+
+        const newHabits = [...filteredHabits]
+        const [movedHabit] = newHabits.splice(currentIndex, 1)
+        newHabits.splice(newIndex, 0, movedHabit)
+
+        // Update order for all items in the list to ensure consistency
+        const updates = newHabits.map((h, index) => ({
+            id: h.id,
+            orden: index
+        }))
+
+        await reorderHabits(updates)
+    }
+
     const todayCompletedCount = habits.filter(h => isHabitCompletedToday(h.id) && (h.type || 'good') === 'good').length // Only count good habits for "Completed today" metric? Or separate?
     // Let's count "Successes" (Good done + Bad avoided)
     const todaySuccessCount = habits.filter(h => isHabitCompletedToday(h.id)).length
@@ -687,19 +708,37 @@ w-12 h-12 rounded-xl flex items-center justify-center text-2xl transition-all
                                     </div>
                                 </div>
 
-                                <div className="flex items-center gap-1">
-                                    <button
-                                        onClick={() => startEdit(habit)}
-                                        className="p-2 text-gray-400 hover:text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors"
-                                    >
-                                        <Edit2 className="w-4 h-4" />
-                                    </button>
-                                    <button
-                                        onClick={() => deleteHabit(habit.id)}
-                                        className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
-                                    >
-                                        <Trash2 className="w-4 h-4" />
-                                    </button>
+                                <div className="flex items-center gap-2">
+                                    <div className="flex flex-col gap-0.5">
+                                        <button
+                                            onClick={() => handleReorder(habit.id, 'up')}
+                                            disabled={filteredHabits.indexOf(habit) === 0}
+                                            className="p-1 text-gray-400 hover:text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded disabled:opacity-30 disabled:hover:bg-transparent"
+                                        >
+                                            <ArrowUp className="w-3 h-3" />
+                                        </button>
+                                        <button
+                                            onClick={() => handleReorder(habit.id, 'down')}
+                                            disabled={filteredHabits.indexOf(habit) === filteredHabits.length - 1}
+                                            className="p-1 text-gray-400 hover:text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded disabled:opacity-30 disabled:hover:bg-transparent"
+                                        >
+                                            <ArrowDown className="w-3 h-3" />
+                                        </button>
+                                    </div>
+                                    <div className="flex items-center gap-1">
+                                        <button
+                                            onClick={() => startEdit(habit)}
+                                            className="p-2 text-gray-400 hover:text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors"
+                                        >
+                                            <Edit2 className="w-4 h-4" />
+                                        </button>
+                                        <button
+                                            onClick={() => deleteHabit(habit.id)}
+                                            className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
+                                        >
+                                            <Trash2 className="w-4 h-4" />
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                         </div>
