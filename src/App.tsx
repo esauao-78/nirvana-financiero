@@ -112,7 +112,7 @@ function AppContent() {
 
     // Main app (authenticated state)
     // Motivation Popup Logic
-    useEffect(() => {
+    /* useEffect(() => {
         // Show immediately on mount (if authenticated)
         setMotivationOpen(true)
 
@@ -122,7 +122,7 @@ function AppContent() {
         }, 30 * 60 * 1000)
 
         return () => clearInterval(interval)
-    }, [])
+    }, []) */
 
     return (
         <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
@@ -175,12 +175,12 @@ function AppContent() {
                 onClose={() => setCoachOpen(false)}
             />
 
-            <MotivationPopup
+            {/* <MotivationPopup
                 isOpen={motivationOpen}
                 onClose={() => setMotivationOpen(false)}
                 palabraDelAño={profile?.palabra_del_año || ''}
                 porQue={profile?.por_que || ''}
-            />
+            /> */}
         </div>
     )
 }
