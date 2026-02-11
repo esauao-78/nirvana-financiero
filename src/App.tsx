@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { AuthProvider, useAuth } from './contexts/AuthContext'
 import { ThemeProvider } from './contexts/ThemeContext'
 import { LoginForm } from './components/auth/LoginForm'
@@ -18,12 +18,27 @@ import { TasksList } from './components/tasks/TasksList'
 import { PomodoroTimer } from './components/pomodoro/PomodoroTimer'
 import { IdentityEditor } from './components/identity/IdentityEditor'
 import { RewardsShop } from './components/gamification/RewardsShop'
+import { MotivationPopup } from './components/identity/MotivationPopup'
 
 function AppContent() {
     const { profile, appState, errorMessage, retryLoadProfile, signOut } = useAuth()
     const [currentView, setCurrentView] = useState<ViewType>('dashboard')
     const [sidebarOpen, setSidebarOpen] = useState(false)
     const [coachOpen, setCoachOpen] = useState(false)
+    const [motivationOpen, setMotivationOpen] = useState(false)
+
+    // Motivation Popup Logic
+    useEffect(() => {
+        // Show immediately on mount (if authenticated)
+        setMotivationOpen(true)
+
+        // Show every 30 minutes
+        const interval = setInterval(() => {
+            setMotivationOpen(true)
+        }, 30 * 60 * 1000)
+
+        return () => clearInterval(interval)
+    }, [])
 
     // Loading state
     if (appState === 'loading') {
@@ -158,6 +173,13 @@ function AppContent() {
             <CoachModal
                 isOpen={coachOpen}
                 onClose={() => setCoachOpen(false)}
+            />
+
+            <MotivationPopup
+                isOpen={motivationOpen}
+                onClose={() => setMotivationOpen(false)}
+                palabraDelAño={profile?.palabra_del_año || ''}
+                porQue={profile?.por_que || ''}
             />
         </div>
     )
