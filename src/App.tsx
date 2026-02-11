@@ -27,19 +27,6 @@ function AppContent() {
     const [coachOpen, setCoachOpen] = useState(false)
     const [motivationOpen, setMotivationOpen] = useState(false)
 
-    // Motivation Popup Logic
-    useEffect(() => {
-        // Show immediately on mount (if authenticated)
-        setMotivationOpen(true)
-
-        // Show every 30 minutes
-        const interval = setInterval(() => {
-            setMotivationOpen(true)
-        }, 30 * 60 * 1000)
-
-        return () => clearInterval(interval)
-    }, [])
-
     // Loading state
     if (appState === 'loading') {
         return (
@@ -124,6 +111,19 @@ function AppContent() {
     }
 
     // Main app (authenticated state)
+    // Motivation Popup Logic
+    useEffect(() => {
+        // Show immediately on mount (if authenticated)
+        setMotivationOpen(true)
+
+        // Show every 30 minutes
+        const interval = setInterval(() => {
+            setMotivationOpen(true)
+        }, 30 * 60 * 1000)
+
+        return () => clearInterval(interval)
+    }, [])
+
     return (
         <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
             <Header
