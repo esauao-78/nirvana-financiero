@@ -18,14 +18,14 @@ import { TasksList } from './components/tasks/TasksList'
 import { PomodoroTimer } from './components/pomodoro/PomodoroTimer'
 import { IdentityEditor } from './components/identity/IdentityEditor'
 import { RewardsShop } from './components/gamification/RewardsShop'
-import { MotivationPopup } from './components/identity/MotivationPopup'
+// import { MotivationPopup } from './components/identity/MotivationPopup'
 
 function AppContent() {
     const { profile, appState, errorMessage, retryLoadProfile, signOut } = useAuth()
     const [currentView, setCurrentView] = useState<ViewType>('dashboard')
     const [sidebarOpen, setSidebarOpen] = useState(false)
     const [coachOpen, setCoachOpen] = useState(false)
-    const [motivationOpen, setMotivationOpen] = useState(false)
+    // const [motivationOpen, setMotivationOpen] = useState(false)
 
     // Loading state
     if (appState === 'loading') {

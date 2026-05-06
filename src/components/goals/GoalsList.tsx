@@ -2,7 +2,7 @@ import { useState, DragEvent } from 'react'
 import { useGoals } from '../../hooks/useGoals'
 import { DateInput } from '../ui/DateInput'
 import { Plus, Target, Trash2, Edit2, Check, Calendar, List, LayoutGrid, DollarSign, TrendingUp, Pause, Play, ChevronUp, ChevronDown } from 'lucide-react'
-import { GoalsGantt } from './GoalsGantt'
+// import { GoalsGantt } from './GoalsGantt'
 
 type ViewMode = 'list' | 'kanban' | 'gantt'
 type EstadoMeta = 'no_iniciada' | 'en_progreso' | 'completada' | 'en_pausa'
@@ -516,9 +516,9 @@ export function GoalsList() {
                 </div>
             )}
             {/* GANTT VIEW */}
-            {viewMode === 'gantt' && (
+            {/* {viewMode === 'gantt' && (
                 <GoalsGantt goals={goals} />
-            )}
+            )} */}
         </div>
     )
 }
