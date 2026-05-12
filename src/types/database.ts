@@ -26,6 +26,7 @@ export interface Database {
                     level: number
                     coins: number
                     stats: Record<string, number>
+                    auto_imagen: Record<string, string> | null
                     created_at: string
                     updated_at: string
                 }
@@ -45,6 +46,7 @@ export interface Database {
                     level?: number
                     coins?: number
                     stats?: Record<string, number>
+                    auto_imagen?: Record<string, string> | null
                     created_at?: string
                     updated_at?: string
                 }
@@ -64,6 +66,7 @@ export interface Database {
                     level?: number
                     coins?: number
                     stats?: Record<string, number>
+                    auto_imagen?: Record<string, string> | null
                     created_at?: string
                     updated_at?: string
                 }

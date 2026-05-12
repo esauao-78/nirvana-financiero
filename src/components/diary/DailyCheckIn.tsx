@@ -12,6 +12,44 @@ const CHECKLIST_PREGUNTAS = [
     { id: 'paz_noche', label: '¿Dormí con paz y no con culpa?' },
 ]
 
+const PASOS_BOB_PROCTOR = [
+    {
+        id: 'bob_paso_1',
+        title: 'Paso 1.- Autogestión frente al espejo',
+        description: ''
+    },
+    {
+        id: 'bob_paso_2',
+        title: 'Paso 2.- Escribe 30 veces tu meta',
+        description: 'Ejemplo: Yo soy muy feliz y estoy agradecido porque he logrado vender dos propiedades al mes y gano 180,000 al mes y puedo viajar con mi familia de vacaciones cuando quiero, he logrado la libertada financiera al hacerme de propiedades y de crear varios negocios que funcionan sin mi, he podido darle a mi familia todo lo que necesita y he podido ayudar a otras personas a alcanzar sus metas y sueños a atraves de asesorarlos correctamente a elegir la propiedad ideal para ellos, ademas de ayudar a otras personas a lograr resultados en sus negocios a traves de consultorias de desarrollo personal.'
+    },
+    {
+        id: 'bob_paso_3',
+        title: 'Paso 3.- Lee la autoimagen en voz alta',
+        description: 'Crea tu propia autoimagen: la descripción detallada de la persona en que te quieres convertir pero en estado presente.\nEjemplo: Yo soy muy feliz y agradecido ahora que soy disciplinado, enfocado en lo que en realidad me deja, amoroso, resiliente, gracias ya esta hecho.'
+    },
+    {
+        id: 'bob_paso_4',
+        title: 'Paso 4.- Escucha la grabación la palabra mágica',
+        description: 'Link: https://www.youtube.com/watch?v=lHKF_cwmoYU'
+    },
+    {
+        id: 'bob_paso_5',
+        title: 'Paso 5.- Lee lleno de emoción, la fórmula de la confianza de Napoleon Hill',
+        description: 'Fórmula para la confianza en mí mismo\nSé que tengo la capacidad de lograr el objetivo definido de mi propósito en la vida. Por lo tanto, exijo de mí mismo una acción persistente y continua hacia su consecución, y me prometo realizar tales acciones.\nEntiendo que los pensamientos dominantes en mi mente eventualmente se reproducirán en actos exteriores y se convertirán gradualmente en una realidad física. Por lo tanto, concentraré mis pensamientos durante 30 minutos diarios en la tarea de pensar en la persona en la que me propongo convertirme, creando así una imagen mental clara de esa persona.\nSé que a través del principio de la autosugestión, cualquier deseo que mantenga persistentemente en mi mente eventualmente buscará expresarse a través de medios prácticos para alcanzar el objetivo que persigue. Por lo tanto, dedicaré 10 minutos diarios a demandar de mí mismo el desarrollo de la confianza en mí mismo.\nHe escrito con claridad una descripción de mi principal objetivo en la vida, y nunca dejaré de intentar hasta haber desarrollado suficiente confianza en mí mismo para lograrlo.\nComprendo con claridad que no hay riqueza ni posición que pueda durar mucho tiempo, a menos que se haya formado sobre la lealtad y la justicia; por lo tanto, no me comprometeré en ninguna transacción que no beneficie a todos a los que afecte. Tendré éxito atrayendo hacia mí las fuerzas que deseo emplear, y la cooperación de otras personas. Induciré a otros a servirme, por obra de mi disposición de servir a otros. Eliminaré el desprecio, la envidia, los celos, el egoísmo y el cinismo, y cultivaré el amor por toda la humanidad, porque sé que una actitud negativa hacia los demás nunca me dará el éxito. Haré que los demás crean en mí, porque yo creeré en ellos y en mí mismo.\nFirmaré esta fórmula con mi nombre, la memorizaré y la repetiré en voz alta una vez cada día, con la fe absoluta de que influirá gradualmente en mis pensamientos y mis actos para que yo me convierta en una persona que confía en sí misma y que goza del privilegio del éxito.'
+    },
+    {
+        id: 'bob_paso_6',
+        title: 'Paso 6.- Escuchar o ver video de lo que quiero ser experto',
+        description: 'Por ejemplo videos de ventas.'
+    },
+    {
+        id: 'bob_paso_7',
+        title: 'Paso 7.- Reflexionar al final del día',
+        description: '• ¿Me comporté como la persona en la que me quiero convertir?\n• ¿Tuve la actitud (pensamientos/emociones/acciones) de la persona en la que me quiero convertir?\n• ¿Operé con el standard (desempeño) de la persona en la que me quiero convertir?\n• ¿Tuve la disciplina de la persona en la que me quiero convertir?'
+    }
+]
+
 export function DailyCheckIn() {
     const { user } = useAuth()
     const today = new Date().toISOString().split('T')[0]
@@ -359,7 +397,7 @@ export function DailyCheckIn() {
                                         : 'bg-gray-50 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-600'
                                     }`}
                             >
-                                <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${checklistConciencia[pregunta.id]
+                                <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center flex-shrink-0 ${checklistConciencia[pregunta.id]
                                         ? 'bg-green-500 border-green-500 text-white'
                                         : 'border-gray-300 dark:border-gray-500'
                                     }`}>
@@ -367,6 +405,45 @@ export function DailyCheckIn() {
                                 </div>
                                 <span className="flex-1 text-sm">{pregunta.label}</span>
                             </button>
+                        ))}
+                    </div>
+                </div>
+
+                {/* Los 7 pasos diarios de Bob Proctor para lograr lo que sea */}
+                <div className="bg-white dark:bg-gray-800 p-5 rounded-2xl shadow-lg border-2 border-gold-400/30">
+                    <h3 className="text-lg font-semibold mb-3 dark:text-white flex items-center gap-2">
+                        <Sparkles className="w-5 h-5 text-gold-500" />
+                        Los 7 pasos diarios de Bob Proctor para lograr lo que sea
+                    </h3>
+                    <div className="space-y-4">
+                        {PASOS_BOB_PROCTOR.map(paso => (
+                            <div key={paso.id} className="flex gap-3 bg-gray-50 dark:bg-gray-700/50 p-4 rounded-xl">
+                                <button
+                                    onClick={() => toggleChecklistItem(paso.id)}
+                                    className={`w-6 h-6 rounded-full border-2 flex items-center justify-center flex-shrink-0 mt-0.5 ${checklistConciencia[paso.id]
+                                            ? 'bg-gold-500 border-gold-500 text-white'
+                                            : 'border-gray-300 dark:border-gray-500'
+                                        }`}
+                                >
+                                    {checklistConciencia[paso.id] && <Check className="w-4 h-4" />}
+                                </button>
+                                <div className="flex-1">
+                                    <h4 className={`font-medium ${checklistConciencia[paso.id] ? 'text-gray-500 dark:text-gray-400 line-through' : 'text-gray-800 dark:text-gray-200'}`}>
+                                        {paso.title}
+                                    </h4>
+                                    {paso.description && (
+                                        <div className="mt-2 text-sm text-gray-600 dark:text-gray-400 whitespace-pre-line">
+                                            {paso.description.includes('http') ? (
+                                                <a href="https://www.youtube.com/watch?v=lHKF_cwmoYU" target="_blank" rel="noreferrer" className="text-blue-500 hover:underline inline-flex items-center gap-1">
+                                                    Escuchar grabación aquí
+                                                </a>
+                                            ) : (
+                                                paso.description
+                                            )}
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
                         ))}
                     </div>
                 </div>

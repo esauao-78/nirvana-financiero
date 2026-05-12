@@ -17,6 +17,7 @@ import { CoachModal } from './components/coach/CoachModal'
 import { TasksList } from './components/tasks/TasksList'
 import { PomodoroTimer } from './components/pomodoro/PomodoroTimer'
 import { IdentityEditor } from './components/identity/IdentityEditor'
+import { AutoImagen } from './components/identity/AutoImagen'
 import { RewardsShop } from './components/gamification/RewardsShop'
 // import { MotivationPopup } from './components/identity/MotivationPopup'
 
@@ -153,6 +154,7 @@ function AppContent() {
                     {currentView === 'biblioteca' && <WisdomLibrary />}
                     {currentView === 'estadisticas' && <StatsDashboard />}
                     {currentView === 'identidad' && <IdentityEditor />}
+                    {currentView === 'autoimagen' && <AutoImagen />}
                     {currentView === 'settings' && <SettingsView />}
                     {currentView === 'tienda' && <RewardsShop />}
                 </main>

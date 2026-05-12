@@ -211,7 +211,7 @@ export function HabitTracker() {
                         ) : (
                             <Shield className="w-7 h-7 text-red-500" />
                         )}
-                        {activeTab === 'good' ? 'Rutina Diaria (Hábitos)' : 'Modo Sombra (Anti-Hábitos)'}
+                        {activeTab === 'good' ? 'Habitos o acciones diarias (Hábitos)' : 'Modo Sombra (Anti-Hábitos)'}
                     </h2>
                     <p className="text-gray-500 dark:text-gray-400 mt-1">
                         {todaySuccessCount} victorias hoy

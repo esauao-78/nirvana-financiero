@@ -801,7 +801,7 @@ Responde en español de forma concisa y práctica.`
     const menuItems = [
       { id: 'dashboard', icon: BarChart3, label: 'Dashboard' },
       { id: 'metas', icon: Target, label: 'Metas' },
-      { id: 'rutina', icon: CheckSquare, label: 'Rutina Diaria' },
+      { id: 'rutina', icon: CheckSquare, label: 'Habitos o acciones diarias' },
       { id: 'finanzas', icon: DollarSign, label: 'Finanzas' },
       { id: 'biblioteca', icon: BookOpen, label: 'Biblioteca' },
       { id: 'estadisticas', icon: TrendingUp, label: 'Estadísticas' },
@@ -887,7 +887,7 @@ Responde en español de forma concisa y práctica.`
             )}
             {currentView === 'rutina' && (
               <div className="p-6">
-                <h2 className="text-2xl font-bold mb-6 dark:text-white">Rutina Diaria</h2>
+                <h2 className="text-2xl font-bold mb-6 dark:text-white">Habitos o acciones diarias</h2>
                 <p className="text-gray-600 dark:text-gray-300">Módulo en construcción...</p>
               </div>
             )}

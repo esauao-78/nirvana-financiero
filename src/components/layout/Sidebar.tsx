@@ -11,12 +11,13 @@ import {
     Timer,
     User,
     ShoppingBag,
-    Trophy
+    Trophy,
+    Sparkles
 } from 'lucide-react'
 import { useAuth } from '../../contexts/AuthContext'
 import { useGamification } from '../../contexts/GamificationContext'
 
-export type ViewType = 'dashboard' | 'metas' | 'tareas' | 'rutina' | 'pomodoro' | 'finanzas' | 'diario' | 'biblioteca' | 'estadisticas' | 'identidad' | 'settings' | 'tienda'
+export type ViewType = 'dashboard' | 'metas' | 'tareas' | 'rutina' | 'pomodoro' | 'finanzas' | 'diario' | 'biblioteca' | 'estadisticas' | 'identidad' | 'autoimagen' | 'settings' | 'tienda'
 
 interface SidebarProps {
     currentView: ViewType
@@ -29,7 +30,7 @@ const menuItems: Array<{ id: ViewType; icon: React.ElementType; label: string; c
     { id: 'dashboard', icon: BarChart3, label: 'Inicio', color: 'text-blue-500' },
     { id: 'metas', icon: Target, label: 'Mis Metas', color: 'text-gold-500' },
     { id: 'tareas', icon: ListTodo, label: 'Tareas', color: 'text-indigo-500' },
-    { id: 'rutina', icon: CheckSquare, label: 'Rutina Diaria', color: 'text-green-500' },
+    { id: 'rutina', icon: CheckSquare, label: 'Habitos o acciones diarias', color: 'text-green-500' },
     { id: 'pomodoro', icon: Timer, label: 'Pomodoro', color: 'text-red-500' },
     { id: 'diario', icon: Heart, label: 'Diario de Conciencia', color: 'text-pink-500' },
     { id: 'finanzas', icon: DollarSign, label: 'Finanzas', color: 'text-emerald-500' },
@@ -37,6 +38,7 @@ const menuItems: Array<{ id: ViewType; icon: React.ElementType; label: string; c
     { id: 'estadisticas', icon: TrendingUp, label: 'Estadísticas', color: 'text-orange-500' },
     { id: 'tienda', icon: ShoppingBag, label: 'Tienda de Recompensas', color: 'text-teal-500' },
     { id: 'identidad', icon: User, label: 'Mi Identidad', color: 'text-gold-500' },
+    { id: 'autoimagen', icon: Sparkles, label: 'Auto Imagen', color: 'text-purple-500' },
     { id: 'settings', icon: Settings, label: 'Configuración', color: 'text-gray-500' },
 ]
 
