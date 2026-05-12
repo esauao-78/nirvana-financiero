@@ -21,12 +21,16 @@ const PASOS_BOB_PROCTOR = [
     {
         id: 'bob_paso_2',
         title: 'Paso 2.- Escribe 30 veces tu meta',
-        description: 'Ejemplo: Yo soy muy feliz y estoy agradecido porque he logrado vender dos propiedades al mes y gano 180,000 al mes y puedo viajar con mi familia de vacaciones cuando quiero, he logrado la libertada financiera al hacerme de propiedades y de crear varios negocios que funcionan sin mi, he podido darle a mi familia todo lo que necesita y he podido ayudar a otras personas a alcanzar sus metas y sueños a atraves de asesorarlos correctamente a elegir la propiedad ideal para ellos, ademas de ayudar a otras personas a lograr resultados en sus negocios a traves de consultorias de desarrollo personal.'
+        description: 'Ejemplo: Yo soy muy feliz y estoy agradecido porque he logrado vender dos propiedades al mes y gano 180,000 al mes y puedo viajar con mi familia de vacaciones cuando quiero, he logrado la libertada financiera al hacerme de propiedades y de crear varios negocios que funcionan sin mi, he podido darle a mi familia todo lo que necesita y he podido ayudar a otras personas a alcanzar sus metas y sueños a atraves de asesorarlos correctamente a elegir la propiedad ideal para ellos, ademas de ayudar a otras personas a lograr resultados en sus negocios a traves de consultorias de desarrollo personal.',
+        hasInput: true,
+        placeholder: 'Escribe aquí tu meta 30 veces...'
     },
     {
         id: 'bob_paso_3',
         title: 'Paso 3.- Lee la autoimagen en voz alta',
-        description: 'Crea tu propia autoimagen: la descripción detallada de la persona en que te quieres convertir pero en estado presente.\nEjemplo: Yo soy muy feliz y agradecido ahora que soy disciplinado, enfocado en lo que en realidad me deja, amoroso, resiliente, gracias ya esta hecho.'
+        description: 'Crea tu propia autoimagen: la descripción detallada de la persona en que te quieres convertir pero en estado presente.\nEjemplo: Yo soy muy feliz y agradecido ahora que soy disciplinado, enfocado en lo que en realidad me deja, amoroso, resiliente, gracias ya esta hecho.',
+        hasInput: true,
+        placeholder: 'Escribe o pega aquí tu autoimagen...'
     },
     {
         id: 'bob_paso_4',
@@ -36,7 +40,9 @@ const PASOS_BOB_PROCTOR = [
     {
         id: 'bob_paso_5',
         title: 'Paso 5.- Lee lleno de emoción, la fórmula de la confianza de Napoleon Hill',
-        description: 'Fórmula para la confianza en mí mismo\nSé que tengo la capacidad de lograr el objetivo definido de mi propósito en la vida. Por lo tanto, exijo de mí mismo una acción persistente y continua hacia su consecución, y me prometo realizar tales acciones.\nEntiendo que los pensamientos dominantes en mi mente eventualmente se reproducirán en actos exteriores y se convertirán gradualmente en una realidad física. Por lo tanto, concentraré mis pensamientos durante 30 minutos diarios en la tarea de pensar en la persona en la que me propongo convertirme, creando así una imagen mental clara de esa persona.\nSé que a través del principio de la autosugestión, cualquier deseo que mantenga persistentemente en mi mente eventualmente buscará expresarse a través de medios prácticos para alcanzar el objetivo que persigue. Por lo tanto, dedicaré 10 minutos diarios a demandar de mí mismo el desarrollo de la confianza en mí mismo.\nHe escrito con claridad una descripción de mi principal objetivo en la vida, y nunca dejaré de intentar hasta haber desarrollado suficiente confianza en mí mismo para lograrlo.\nComprendo con claridad que no hay riqueza ni posición que pueda durar mucho tiempo, a menos que se haya formado sobre la lealtad y la justicia; por lo tanto, no me comprometeré en ninguna transacción que no beneficie a todos a los que afecte. Tendré éxito atrayendo hacia mí las fuerzas que deseo emplear, y la cooperación de otras personas. Induciré a otros a servirme, por obra de mi disposición de servir a otros. Eliminaré el desprecio, la envidia, los celos, el egoísmo y el cinismo, y cultivaré el amor por toda la humanidad, porque sé que una actitud negativa hacia los demás nunca me dará el éxito. Haré que los demás crean en mí, porque yo creeré en ellos y en mí mismo.\nFirmaré esta fórmula con mi nombre, la memorizaré y la repetiré en voz alta una vez cada día, con la fe absoluta de que influirá gradualmente en mis pensamientos y mis actos para que yo me convierta en una persona que confía en sí misma y que goza del privilegio del éxito.'
+        description: 'Fórmula para la confianza en mí mismo\nSé que tengo la capacidad de lograr el objetivo definido de mi propósito en la vida. Por lo tanto, exijo de mí mismo una acción persistente y continua hacia su consecución, y me prometo realizar tales acciones.\nEntiendo que los pensamientos dominantes en mi mente eventualmente se reproducirán en actos exteriores y se convertirán gradualmente en una realidad física. Por lo tanto, concentraré mis pensamientos durante 30 minutos diarios en la tarea de pensar en la persona en la que me propongo convertirme, creando así una imagen mental clara de esa persona.\nSé que a través del principio de la autosugestión, cualquier deseo que mantenga persistentemente en mi mente eventualmente buscará expresarse a través de medios prácticos para alcanzar el objetivo que persigue. Por lo tanto, dedicaré 10 minutos diarios a demandar de mí mismo el desarrollo de la confianza en mí mismo.\nHe escrito con claridad una descripción de mi principal objetivo en la vida, y nunca dejaré de intentar hasta haber desarrollado suficiente confianza en mí mismo para lograrlo.\nComprendo con claridad que no hay riqueza ni posición que pueda durar mucho tiempo, a menos que se haya formado sobre la lealtad y la justicia; por lo tanto, no me comprometeré en ninguna transacción que no beneficie a todos a los que afecte. Tendré éxito atrayendo hacia mí las fuerzas que deseo emplear, y la cooperación de otras personas. Induciré a otros a servirme, por obra de mi disposición de servir a otros. Eliminaré el desprecio, la envidia, los celos, el egoísmo y el cinismo, y cultivaré el amor por toda la humanidad, porque sé que una actitud negativa hacia los demás nunca me dará el éxito. Haré que los demás crean en mí, porque yo creeré en ellos y en mí mismo.\nFirmaré esta fórmula con mi nombre, la memorizaré y la repetiré en voz alta una vez cada día, con la fe absoluta de que influirá gradualmente en mis pensamientos y mis actos para que yo me convierta en una persona que confía en sí misma y que goza del privilegio del éxito.',
+        hasInput: true,
+        placeholder: 'Notas o reflexiones sobre la fórmula...'
     },
     {
         id: 'bob_paso_6',
@@ -65,6 +71,7 @@ export function DailyCheckIn() {
     const [retos, setRetos] = useState<string[]>([''])
     const [notasAdicionales, setNotasAdicionales] = useState('')
     const [checklistConciencia, setChecklistConciencia] = useState<Record<string, boolean>>({})
+    const [bobProctorNotas, setBobProctorNotas] = useState<Record<string, string>>({})
 
     const [loading, setLoading] = useState(true)
     const [saving, setSaving] = useState(false)
@@ -106,6 +113,7 @@ export function DailyCheckIn() {
             setRetos((data as any).retos?.length ? (data as any).retos : [''])
             setNotasAdicionales((data as any).notas_adicionales || '')
             setChecklistConciencia((data as any).checklist_conciencia || {})
+            setBobProctorNotas((data as any).bob_proctor_notas || {})
         } else {
             setEntryId(null)
             setEstadoEmocional(7)
@@ -118,6 +126,7 @@ export function DailyCheckIn() {
             setRetos([''])
             setNotasAdicionales('')
             setChecklistConciencia({})
+            setBobProctorNotas({})
         }
 
         setLoading(false)
@@ -143,6 +152,7 @@ export function DailyCheckIn() {
             retos: retos.filter(r => r.trim()),
             notas_adicionales: notasAdicionales,
             checklist_conciencia: checklistConciencia,
+            bob_proctor_notas: bobProctorNotas,
         }
 
         let result
@@ -441,6 +451,14 @@ export function DailyCheckIn() {
                                                 paso.description
                                             )}
                                         </div>
+                                    )}
+                                    {paso.hasInput && (
+                                        <textarea
+                                            value={bobProctorNotas[paso.id] || ''}
+                                            onChange={(e) => setBobProctorNotas({ ...bobProctorNotas, [paso.id]: e.target.value })}
+                                            placeholder={paso.placeholder}
+                                            className="w-full mt-3 px-4 py-3 border border-gray-200 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-800 dark:text-white min-h-[100px] resize-y text-sm"
+                                        />
                                     )}
                                 </div>
                             </div>

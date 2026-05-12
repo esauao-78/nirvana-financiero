@@ -329,6 +329,7 @@ export interface Database {
                     retos: string[]
                     notas_adicionales: string | null
                     checklist_conciencia: Record<string, boolean>
+                    bob_proctor_notas: Record<string, string>
                     created_at: string
                 }
                 Insert: {
@@ -345,6 +346,7 @@ export interface Database {
                     retos?: string[]
                     notas_adicionales?: string | null
                     checklist_conciencia?: Record<string, boolean>
+                    bob_proctor_notas?: Record<string, string>
                     created_at?: string
                 }
                 Update: {
@@ -361,6 +363,7 @@ export interface Database {
                     retos?: string[]
                     notas_adicionales?: string | null
                     checklist_conciencia?: Record<string, boolean>
+                    bob_proctor_notas?: Record<string, string>
                     created_at?: string
                 }
             }
